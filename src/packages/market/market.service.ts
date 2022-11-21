@@ -9,9 +9,8 @@ import { MarketFilterInput } from './dto/market.dto';
 @Injectable()
 export class MarketService {
     async getList(input: MarketFilterInput) {
-        let sql = "";
         const marketModel = new lab_models.MarketTb();
-        sql = "(SELECT *,(((acos(sin((" + input.lat + "*pi()/180)) * sin((`lat`*pi()/180)) + cos((" + input.lat + "*pi()/180)) * cos((`lat`*pi()/180)) * cos(((" + input.lon + "- `lon`) * pi()/180)))) * 180/pi()) * 60 * 1.1515 * 1.609344)as distance FROM `market_tb`) AS v";
+        let sql = "(SELECT *,(((acos(sin((" + input.lat + "*pi()/180)) * sin((`lat`*pi()/180)) + cos((" + input.lat + "*pi()/180)) * cos((`lat`*pi()/180)) * cos(((" + input.lon + "- `lon`) * pi()/180)))) * 180/pi()) * 60 * 1.1515 * 1.609344)as distance FROM `market_tb`) AS v";
         marketModel.query().from(lab_connect.knex.raw(sql))
         if (input.min_price && input.max_price) {
             marketModel.query(q => {
@@ -29,5 +28,17 @@ export class MarketService {
         }
         marketModel.query().select('v.id', 'v.name', 'v.image', 'v.time_open', 'v.time_close', 'v.lat', 'v.lon')
         return await marketModel.fetchAll();
+    }
+
+    async getPriceMinMax(input) {
+        const marketModel = new lab_models.MarketTb();
+        let sql = "(SELECT *,(((acos(sin((" + input.lat + "*pi()/180)) * sin((`lat`*pi()/180)) + cos((" + input.lat + "*pi()/180)) * cos((`lat`*pi()/180)) * cos(((" + input.lon + "- `lon`) * pi()/180)))) * 180/pi()) * 60 * 1.1515 * 1.609344)as distance FROM `market_tb`) AS v";
+        marketModel.query().from(lab_connect.knex.raw(sql))
+        marketModel.query(q => {
+            q.rightJoin('zone_tb', 'v.id', 'zone_tb.market_id');
+            q.rightJoin('section_zone_tb', 'zone_tb.id', 'section_zone_tb.zone_id');
+        })
+        marketModel.query().min('price as min').max('price as max');
+        return await marketModel.fetch();
     }
 }

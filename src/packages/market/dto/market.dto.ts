@@ -15,3 +15,10 @@ export class MarketFilterInput {
     // @IsNumber({}, { message: "กรุณากรอกจำนวนเงินต่ำเป็นตัวเลข" })
     distance: string
 }
+
+export class Location {
+    @IsNotEmpty({ message: "กรุณากรอก latitude" })
+    lat: string
+    @IsNotEmpty({ message: "กรุณากรอก longitude" })
+    lon: string
+}
