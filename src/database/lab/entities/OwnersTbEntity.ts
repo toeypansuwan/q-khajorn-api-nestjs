@@ -3,9 +3,9 @@
 * Rerun sql-ts to regenerate this file.
 */
 export interface OwnersTbEntity {
-  'fname': string;
   'created_at': string;
   'email': string;
+  'fname': string;
   'id'?: number;
   'lname': string;
   'password': string;
@@ -14,9 +14,9 @@ export interface OwnersTbEntity {
 
 
 export const OwnersTbAttributes = [
-    " fname",
     "created_at",
     "email",
+    "fname",
     "id",
     "lname",
     "password",

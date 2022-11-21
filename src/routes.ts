@@ -2,6 +2,8 @@ import { TodoModule } from '@app/packages/Todo/todo.module';
 import { Routes } from 'nest-router';
 import { AuthModule } from './packages/auth/auth.module';
 import { LineModule } from './packages/line/line.module';
+import { MarketModule } from './packages/market/market.module';
+import { UploadModule } from './packages/upload/upload.module';
 import { UsersModule } from './packages/user/users.module';
 
 // global prefix => /api/v1
@@ -23,6 +25,14 @@ export const routes: Routes = [
     {
         path: 'line',
         module: LineModule
+    },
+    {
+        path: 'market',
+        module: MarketModule
+    },
+    {
+        path: 'upload',
+        module: UploadModule
     }
 
 ]
