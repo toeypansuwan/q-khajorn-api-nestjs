@@ -4,13 +4,13 @@
 */
 export interface CategoriesTbEntity {
   'id'?: number;
-  'id_market': number;
+  'market_id': number;
   'name': string;
 }
 
 
 export const CategoriesTbAttributes = [
     "id",
-    "id_market",
+    "market_id",
     "name"
 ];

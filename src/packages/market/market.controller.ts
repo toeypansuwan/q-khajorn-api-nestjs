@@ -18,4 +18,9 @@ export class MarketController {
     get(@Query() input: Location) {
         return this.marketService.getPriceMinMax(input);
     }
+
+    @Get(':id')
+    getProfile(@Param('id') id: string) {
+        return this.marketService.getMarketID(id);
+    }
 }

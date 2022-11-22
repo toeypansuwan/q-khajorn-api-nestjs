@@ -5,12 +5,12 @@
 export interface MarketDaysTbEntity {
   'dayname': string;
   'id'?: number;
-  'id_market': number;
+  'market_id': number;
 }
 
 
 export const MarketDaysTbAttributes = [
     "dayname",
     "id",
-    "id_market"
+    "market_id"
 ];

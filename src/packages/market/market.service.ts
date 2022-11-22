@@ -41,4 +41,16 @@ export class MarketService {
         marketModel.query().min('price as min').max('price as max');
         return await marketModel.fetch();
     }
+
+    async getMarketID(id) {
+        const marketModel = new lab_models.MarketTb();
+        marketModel.query(q => {
+            q.rightJoin('zone_tb', 'market_tb.id', 'zone_tb.market_id');
+            q.rightJoin('section_zone_tb', 'zone_tb.id', 'section_zone_tb.zone_id');
+            q.where('market_tb.id', id);
+            q.select('market_tb.id', 'market_tb.detail', 'market_tb.name', 'market_tb.time_open', 'market_tb.time_close', 'market_tb.detail').min('price as min')
+        });
+
+        return await marketModel.fetchAll({ withRelated: ['galleries', 'marketDays'] });
+    }
 }

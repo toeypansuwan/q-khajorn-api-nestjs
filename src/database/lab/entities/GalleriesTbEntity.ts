@@ -4,13 +4,13 @@
 */
 export interface GalleriesTbEntity {
   'id'?: number;
-  'id_market': number;
   'image': string;
+  'market_id': number;
 }
 
 
 export const GalleriesTbAttributes = [
     "id",
-    "id_market",
-    "image"
+    "image",
+    "market_id"
 ];
