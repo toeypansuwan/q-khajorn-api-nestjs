@@ -23,4 +23,17 @@ export class MarketController {
     getProfile(@Param('id') id: string) {
         return this.marketService.getMarketID(id);
     }
+    @Get('/:id/image-plan')
+    getImagePlan(@Param('id') id: string) {
+        return this.marketService.getMarketPlan(id);
+    }
+
+    @Get('/:id/zone')
+    getZoneMarket(@Param('id') id: string) {
+        return this.marketService.getZone(id);
+    }
+    @Get('/:id/zone-categories')
+    getZoneCategoriesMarket(@Param('id') id: string) {
+        return this.marketService.getCategoriesZone(id);
+    }
 }

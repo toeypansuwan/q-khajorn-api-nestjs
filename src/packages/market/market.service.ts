@@ -48,9 +48,31 @@ export class MarketService {
             q.rightJoin('zone_tb', 'market_tb.id', 'zone_tb.market_id');
             q.rightJoin('section_zone_tb', 'zone_tb.id', 'section_zone_tb.zone_id');
             q.where('market_tb.id', id);
-            q.select('market_tb.id', 'market_tb.detail', 'market_tb.name', 'market_tb.time_open', 'market_tb.time_close', 'market_tb.detail').min('price as min')
+            q.select('market_tb.id', 'market_tb.image', 'market_tb.detail', 'market_tb.name', 'market_tb.time_open', 'market_tb.time_close', 'market_tb.detail').min('price as min')
         });
 
-        return await marketModel.fetchAll({ withRelated: ['galleries', 'marketDays'] });
+        return await marketModel.fetch({ withRelated: ['galleries', 'marketDays'] });
+    }
+
+    async getMarketPlan(id) {
+        const marketModel = new lab_models.MarketTb();
+        marketModel.query().select('image as image_plan').where('id', id)
+        return await marketModel.fetch();
+    }
+
+    async getZone(id) {
+        const zoneModel = new lab_models.ZoneTb();
+        zoneModel.query().where('market_id', id);
+        return await zoneModel.fetchAll({ columns: ["id", "name", "color", "width", "height", "pos_left", "pos_top"] });
+    }
+    async getCategoriesZone(id) {
+        const zoneModel = new lab_models.ZoneTb();
+        zoneModel.query(q => {
+            q.leftJoin('zone_categories_tb', 'zone_tb.id', 'zone_categories_tb.zone_id');
+            q.leftJoin('categories_tb', 'zone_categories_tb.category_id', 'categories_tb.id')
+            q.where('zone_tb.market_id', id),
+                q.select('categories_tb.name as category', 'zone_tb.id as zone_id')
+        })
+        return await zoneModel.fetchAll();
     }
 }
