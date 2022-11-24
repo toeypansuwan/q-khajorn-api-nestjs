@@ -15,7 +15,7 @@ export class MarketController {
     }
 
     @Get('min-max/price')
-    get(@Query() input: Location) {
+    getMinMaxPrice(@Query() input: Location) {
         return this.marketService.getPriceMinMax(input);
     }
 
