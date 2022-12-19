@@ -12,6 +12,7 @@ export interface ZoneTbEntity {
   'pos_left': number;
   'pos_top': number;
   'quantity_section'?: number | null;
+  'shape': string;
   'width': number;
 }
 
@@ -26,5 +27,6 @@ export const ZoneTbAttributes = [
     "pos_left",
     "pos_top",
     "quantity_section",
+    "shape",
     "width"
 ];

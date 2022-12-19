@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber } from "class-validator"
+import { IsDateString, IsNotEmpty } from "class-validator"
 
 export class MarketFilterInput {
     search: string
@@ -21,4 +21,9 @@ export class Location {
     lat: string
     @IsNotEmpty({ message: "กรุณากรอก longitude" })
     lon: string
+}
+export class Section {
+    @IsNotEmpty({ message: "กรุณาระบุวันที่" })
+    @IsDateString({ message: "กรุณาระบุเป็น Date" })
+    date: string
 }

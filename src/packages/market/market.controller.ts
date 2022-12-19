@@ -3,7 +3,7 @@ https://docs.nestjs.com/controllers#controllers
 */
 
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
-import { MarketFilterInput, Location } from './dto/market.dto';
+import { MarketFilterInput, Location, Section } from './dto/market.dto';
 import { MarketService } from './market.service';
 
 @Controller()
@@ -23,17 +23,30 @@ export class MarketController {
     getProfile(@Param('id') id: string) {
         return this.marketService.getMarketID(id);
     }
-    @Get('/:id/image-plan')
-    getImagePlan(@Param('id') id: string) {
-        return this.marketService.getMarketPlan(id);
+    @Get('/:id/image-plan-market')
+    getImagePlanMarket(@Param('id') id: string) {
+        return this.marketService.getPlan(id, "market");
+    }
+    @Get('/:id/image-plan-zone')
+    getImagePlanZone(@Param('id') id: string) {
+        return this.marketService.getPlan(id, "zone");
     }
 
-    @Get('/:id/zone')
-    getZoneMarket(@Param('id') id: string) {
-        return this.marketService.getZone(id);
+    @Post('/:id/zone')
+    getZoneMarket(@Param('id') id: string, @Body() input: any) {
+        return this.marketService.getZone(id, input);
     }
     @Get('/:id/zone-categories')
     getZoneCategoriesMarket(@Param('id') id: string) {
         return this.marketService.getCategoriesZone(id);
+    }
+
+    @Get('/:id/open-days')
+    async getDaysOpen(@Param('id') id: string) {
+        return this.marketService.getDays(id);
+    }
+    @Post('/:id/section')
+    getSectionMarket(@Param('id') id: string, @Body() input: Section) {
+        return this.marketService.getSection(id, input);
     }
 }

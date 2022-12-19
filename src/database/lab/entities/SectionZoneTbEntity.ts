@@ -9,6 +9,7 @@ export interface SectionZoneTbEntity {
   'pos_left': number;
   'post_top': number;
   'price': number;
+  'shape': string;
   'status': string;
   'width': number;
   'zone_id': number;
@@ -22,6 +23,7 @@ export const SectionZoneTbAttributes = [
     "pos_left",
     "post_top",
     "price",
+    "shape",
     "status",
     "width",
     "zone_id"
