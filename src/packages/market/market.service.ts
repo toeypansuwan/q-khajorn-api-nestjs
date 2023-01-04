@@ -100,18 +100,19 @@ export class MarketService {
     }
 
     async getSection(id, input) {
-        const sectionModel = new lab_models.SectionZoneTb();
+        const orderSectionZoneModel = new lab_models.OrderSectionZoneTb();
         const sql = "CASE WHEN order_section_zone_day_tb.id IS NULL THEN 'rgba(88, 202, 69, 0.3)' ELSE 'rgba(230, 230, 230, 0.3)' END as color, CASE WHEN order_section_zone_day_tb.id IS NULL THEN true ELSE false END as status";
-        sectionModel.query(q => {
-            q.leftJoin(`order_section_zone_tb`, `section_zone_tb.id`, `order_section_zone_tb.section_zone_id`)
-            q.leftJoin(`order_section_zone_day_tb`, (j) => {
-                j.on(`order_section_zone_day_tb.order_section_zone_id`, `=`, `order_section_zone_tb.id`)
+        orderSectionZoneModel.query(q => {
+            q.innerJoin(`order_section_zone_day_tb`, `order_section_zone_day_tb.order_section_zone_id`, `order_section_zone_tb.id`)
+            q.rightJoin(`section_zone_tb`, (j) => {
+                j.on(`section_zone_tb.id`, `=`, `order_section_zone_tb.section_zone_id`)
                 j.andOn(lab_connect.knex.raw(`order_section_zone_day_tb.date = '${input.date}'`))
             })
-            q.where(`section_zone_tb.zone_id`, id)
-            q.select(`section_zone_tb.id`, `section_zone_tb.name`, `section_zone_tb.price`, `section_zone_tb.zone_id`, `section_zone_tb.shape`, lab_connect.knex.raw(sql))
+            q.where(`section_zone_tb.zone_id`, 1)
+            q.select(`section_zone_tb.id`, `section_zone_tb.name`, `section_zone_tb.price`, `section_zone_tb.zone_id`, `section_zone_tb.shape`, lab_connect.knex.raw(sql), 'section_zone_tb.image')
         })
-        const section = await sectionModel.fetchAll({ withRelated: ['points'] })
+        const section = await orderSectionZoneModel.fetchAll({ withRelated: ['points'] })
+
         return section;
     }
 }
