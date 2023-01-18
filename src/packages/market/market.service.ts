@@ -3,6 +3,7 @@ https://docs.nestjs.com/providers#services
 */
 
 import { lab_connect, lab_models } from '@app/database/lab';
+import { AccessoriesTb } from '@app/database/lab/accessories_tb';
 import { HttpException, Injectable } from '@nestjs/common';
 import { MarketFilterInput } from './dto/market.dto';
 
@@ -68,11 +69,11 @@ export class MarketService {
         return await model.fetch();
     }
 
-    async getZone(id, input) {
+    async getZone(id, input?) {
         const zoneModel = new lab_models.ZoneTb();
         zoneModel.query(q => {
             q.leftJoin('zone_categories_tb', 'zone_tb.id', 'zone_categories_tb.zone_id')
-            if (input.category_id) {
+            if (input?.category_id) {
                 zoneModel.where('zone_categories_tb.category_id', input.category_id)
             }
             q.select('zone_tb.id', 'zone_tb.name', 'zone_tb.color', 'zone_tb.shape').where('zone_tb.market_id', id)
@@ -99,7 +100,7 @@ export class MarketService {
         return await marketModel.fetchAll({ columns: ['dayname'] })
     }
 
-    async getSection(id, input) {
+    async getSection(id, input?) {
         const orderSectionZoneModel = new lab_models.OrderSectionZoneTb();
         const sql = "CASE WHEN order_section_zone_day_tb.id IS NULL THEN 'rgba(88, 202, 69, 0.3)' ELSE 'rgba(230, 230, 230, 0.3)' END as color, CASE WHEN order_section_zone_day_tb.id IS NULL THEN true ELSE false END as status";
         orderSectionZoneModel.query(q => {
@@ -114,5 +115,15 @@ export class MarketService {
         const section = await orderSectionZoneModel.fetchAll({ withRelated: ['points'] })
 
         return section;
+    }
+    async getAppliance(id) {
+        const accessoriesModel = new lab_models.AccessoriesTb();
+        const data = accessoriesModel.where('market_id', id).fetchAll({ columns: ['id', 'name', 'price', 'quantity', 'image'] })
+        return data;
+    }
+    async getServicePrice(id) {
+        const marketModel = new lab_models.MarketTb();
+        const data = marketModel.where('id', id).fetch({ columns: ['id', 'service_price as price'] })
+        return data;
     }
 }

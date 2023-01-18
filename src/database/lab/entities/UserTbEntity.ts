@@ -10,9 +10,11 @@ export interface UserTbEntity {
   'line_id': string;
   'line_username': string;
   'market_id'?: number | null;
+  'password_admin'?: string | null;
   'phone'?: string | null;
   'type_user': string;
   'updated_at'?: string | null;
+  'username_admin'?: string | null;
 }
 
 
@@ -24,7 +26,9 @@ export const UserTbAttributes = [
     "line_id",
     "line_username",
     "market_id",
+    "password_admin",
     "phone",
     "type_user",
-    "updated_at"
+    "updated_at",
+    "username_admin"
 ];

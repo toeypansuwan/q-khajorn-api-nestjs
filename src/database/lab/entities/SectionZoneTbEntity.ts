@@ -5,6 +5,7 @@
 export interface SectionZoneTbEntity {
   'height': number;
   'id'?: number;
+  'image'?: string | null;
   'name': string;
   'pos_left': number;
   'post_top': number;
@@ -19,6 +20,7 @@ export interface SectionZoneTbEntity {
 export const SectionZoneTbAttributes = [
     "height",
     "id",
+    "image",
     "name",
     "pos_left",
     "post_top",

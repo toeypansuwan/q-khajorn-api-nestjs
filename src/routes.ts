@@ -3,6 +3,7 @@ import { Routes } from 'nest-router';
 import { AuthModule } from './packages/auth/auth.module';
 import { LineModule } from './packages/line/line.module';
 import { MarketModule } from './packages/market/market.module';
+import { OrderModule } from './packages/order/order.module';
 import { UploadModule } from './packages/upload/upload.module';
 import { UsersModule } from './packages/user/users.module';
 
@@ -29,6 +30,10 @@ export const routes: Routes = [
     {
         path: 'market',
         module: MarketModule
+    },
+    {
+        path: 'order',
+        module: OrderModule
     },
     {
         path: 'upload',

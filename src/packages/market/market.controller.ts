@@ -49,4 +49,13 @@ export class MarketController {
     getSectionMarket(@Param('id') id: string, @Body() input: Section) {
         return this.marketService.getSection(id, input);
     }
+
+    @Get('/:id/appliance')
+    getApplianceMarket(@Param('id') id: string) {
+        return this.marketService.getAppliance(id);
+    }
+    @Get('/:id/service-price')
+    getServicePrice(@Param('id') id: string) {
+        return this.marketService.getServicePrice(id);
+    }
 }
