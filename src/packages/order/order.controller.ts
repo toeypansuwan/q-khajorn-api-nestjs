@@ -11,10 +11,10 @@ import { OrderService } from './order.service';
 export class OrderController {
     constructor(
         private orderService: OrderService,
-        private marketService: MarketService
     ) { }
     @Post('create')
     async createOrder(@Body() input: InputCreateDto) {
         return this.orderService.createOrder(input);
     }
+
 }

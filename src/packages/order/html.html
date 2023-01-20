@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <style>
+        body {
+            width: 300px;
+            background: #FFFFFF;
+            box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.25);
+            border-radius: 5px;
+            color: #717171;
+            font-size: 12px;
+        }
+
+        .bg-logo {
+            background: no-repeat center/100% url('http://localhost:3100/api/v1/upload/market/logo_water.png');
+            width: 130px;
+        }
+
+        .fs-10 {
+            font-size: 10px;
+        }
+
+        .fs-24 {
+            font-size: 24px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="p-3">
+        <div class="mx-auto text-center bg-logo mx-3 mb-3">
+            <h1 class="fs-24" id="market_name">ตลาดโต่รุ่ง</h1>
+            <p class="fs-10" id="market_address">ต.บางเค็ม อ.เขาย้อย จ.เพชรบุรี 76140</p>
+        </div>
+        <p class="text-break mb-0">
+            Order: <span id="order">0000108102565000001</span><br>
+            ชื่อลูกค้า <span id="name">สมชาย</span><br>
+            lineID: <span id="line_id">32kkllkmlk232422345dfdgdfhhredo439mdfo54</span><br>
+            วันที่: <span id="date">ส 8 ต.ค. 2565</span>
+        </p>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">รายการ</th>
+                    <th scope="col">วันที่จอง</th>
+                    <th scope="col" class="text-end">ราคา</th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider">
+                <tr id="product">
+                    <td>Mark</td>
+                    <td>Otto</td>
+                    <td class="text-end">@mdo</td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">รายการ</th>
+                    <th scope="col" class="text-end">ราคา</th>
+                </tr>
+            </thead>
+            <tbody class="table-group-divider">
+                <tr id="other">
+                    <td>Mark</td>
+                    <td class="text-end">@mdo</td>
+                </tr>
+                <tr>
+                    <td class="fw-bolder">รวม</td>
+                    <td id="total" class="text-end fw-bolder">560</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="d-flex">
+            <span class="me-auto">ใบเสร็จรับเงิน/ใบกำกับภาษี </span>
+            <span>ออกโดย: Q Khajorn</span>
+        </div>
+
+    </div>
+</body>
+
+</html>
