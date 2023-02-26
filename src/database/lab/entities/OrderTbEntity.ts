@@ -9,6 +9,7 @@ export interface OrderTbEntity {
   'market_name': string;
   'order_runnumber': string;
   'price': number;
+  'qr_code'?: string | null;
   'service': number;
   'status_pay': string;
   'updated_at'?: string | null;
@@ -26,6 +27,7 @@ export const OrderTbAttributes = [
     "market_name",
     "order_runnumber",
     "price",
+    "qr_code",
     "service",
     "status_pay",
     "updated_at",

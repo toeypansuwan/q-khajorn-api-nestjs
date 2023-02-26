@@ -4,7 +4,10 @@ https://docs.nestjs.com/providers#services
 
 import { lab_connect, lab_models } from '@app/database/lab';
 import { AccessoriesTb } from '@app/database/lab/accessories_tb';
+import { environment } from '@app/environments';
 import { HttpException, Injectable } from '@nestjs/common';
+import axios from 'axios';
+import { config } from 'bluebird';
 import { MarketFilterInput } from './dto/market.dto';
 
 @Injectable()
@@ -102,14 +105,15 @@ export class MarketService {
 
     async getSection(id, input?) {
         const orderSectionZoneModel = new lab_models.OrderSectionZoneTb();
-        const sql = "CASE WHEN order_section_zone_day_tb.id IS NULL THEN 'rgba(88, 202, 69, 0.3)' ELSE 'rgba(230, 230, 230, 0.3)' END as color, CASE WHEN order_section_zone_day_tb.id IS NULL THEN true ELSE false END as status";
+        const sql = "CASE WHEN order_section_zone_day_tb.id IS NULL OR order_tb.status_pay = 'fail' THEN 'rgba(88, 202, 69, 0.5)' WHEN order_tb.status_pay = 'wait' THEN 'rgba(250, 207, 67, 0.5)' ELSE 'rgba(230, 230, 230, 0.5)' END as color, CASE WHEN order_section_zone_day_tb.id IS NULL OR order_tb.status_pay ='fail' THEN true WHEN order_tb.status_pay = 'wait' THEN 2  ELSE false END as status";
         orderSectionZoneModel.query(q => {
             q.innerJoin(`order_section_zone_day_tb`, `order_section_zone_day_tb.order_section_zone_id`, `order_section_zone_tb.id`)
+            q.innerJoin(`order_tb`, `order_tb.id`, `order_section_zone_tb.order_id`)
             q.rightJoin(`section_zone_tb`, (j) => {
                 j.on(`section_zone_tb.id`, `=`, `order_section_zone_tb.section_zone_id`)
                 j.andOn(lab_connect.knex.raw(`order_section_zone_day_tb.date = '${input.date}'`))
             })
-            q.where(`section_zone_tb.zone_id`, 1)
+            q.where(`section_zone_tb.zone_id`, id)
             q.select(`section_zone_tb.id`, `section_zone_tb.name`, `section_zone_tb.price`, `section_zone_tb.zone_id`, `section_zone_tb.shape`, lab_connect.knex.raw(sql), 'section_zone_tb.image')
         })
         const section = await orderSectionZoneModel.fetchAll({ withRelated: ['points'] })
@@ -126,4 +130,6 @@ export class MarketService {
         const data = marketModel.where('id', id).fetch({ columns: ['id', 'service_price as price'] })
         return data;
     }
+
+
 }

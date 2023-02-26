@@ -12,8 +12,8 @@ export class UploadController {
     getImageMarket(@Param('imageName') image: string, @Res() res) {
         return of(res.sendFile(join(process.cwd(), `upload/market/${image}`)))
     }
-    @Get('receipt/:imageName')
+    @Get('qr-code/:imageName')
     getImageReceipt(@Param('imageName') image: string, @Res() res) {
-        return of(res.sendFile(join(process.cwd(), `upload/receipt/${image}`)))
+        return of(res.sendFile(join(process.cwd(), `upload/qr_code/${image}`)))
     }
 }

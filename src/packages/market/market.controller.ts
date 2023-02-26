@@ -2,7 +2,8 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards, Request } from '@nestjs/common';
+import { LocalAuthGuard } from '../auth/local/local-auth.guard';
 import { MarketFilterInput, Location, Section } from './dto/market.dto';
 import { MarketService } from './market.service';
 
@@ -11,6 +12,7 @@ export class MarketController {
     constructor(private marketService: MarketService) { }
     @Post('list-filter')
     getMarket(@Body() input: MarketFilterInput) {
+        // return "ddd";
         return this.marketService.getList(input);
     }
 

@@ -13,11 +13,13 @@ export class IsNumberOrString implements ValidatorConstraintInterface {
 }
 
 export class InputCreateDto {
-    @IsNotEmpty()
-    @Validate(IsNumberOrString)
-    line_id: number | string;
+    @IsNotEmpty({ message: "line_id กรุณากรอก" })
+    @IsString({
+        message: "ค่า line_id ต้องเป็น string เท่านั้น"
+    })
+    line_id: string;
 
-    @IsNotEmpty()
+    @IsNotEmpty({ message: "market_id กรุณากรอก" })
     @Validate(IsNumberOrString)
     market_id: number | string;
 
@@ -26,7 +28,7 @@ export class InputCreateDto {
     })
     service: number;
 
-    @IsNotEmpty()
+    @IsNotEmpty({ message: "zone_id กรุณากรอก" })
     @Validate(IsNumberOrString)
     zone_id: number | string;
 

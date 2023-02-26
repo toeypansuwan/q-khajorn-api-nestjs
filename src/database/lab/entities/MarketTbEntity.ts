@@ -7,11 +7,13 @@ export interface MarketTbEntity {
   'created_at'?: string | null;
   'detail': string;
   'id'?: number;
+  'id_card_number'?: string | null;
   'image': string;
   'image_plan': string;
   'key': string;
   'lat': string;
   'lon': string;
+  'mobile_number'?: string | null;
   'name': string;
   'service_price': number;
   'time_close': string;
@@ -25,11 +27,13 @@ export const MarketTbAttributes = [
     "created_at",
     "detail",
     "id",
+    "id_card_number",
     "image",
     "image_plan",
     "key",
     "lat",
     "lon",
+    "mobile_number",
     "name",
     "service_price",
     "time_close",

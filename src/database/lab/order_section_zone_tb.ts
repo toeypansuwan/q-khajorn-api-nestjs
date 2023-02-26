@@ -4,7 +4,10 @@ import Bookshelf from "bookshelf";
 //import * as moment from "moment";
 import { lab_connect } from "../connect";
 import { OrderSectionZoneTbAttributes, OrderSectionZoneTbEntity } from "./entities/OrderSectionZoneTbEntity";
+import { OrderSectionZoneDayTb } from "./order_section_zone_day_tb";
+import { OrderTb } from "./order_tb";
 import { PointTb } from "./point_tb";
+import { SectionZoneTb } from "./section_zone_tb";
 
 export class OrderSectionZoneTb extends lab_connect.Model<OrderSectionZoneTb> {
 
@@ -86,6 +89,16 @@ export class OrderSectionZoneTb extends lab_connect.Model<OrderSectionZoneTb> {
         return this.hasMany(PointTb, 'area_id', 'id').query(q => {
             q.column('axis_x', 'axis_y', 'area_id')
             q.where('type_area', 'section')
+        });
+    }
+    orderSectionZoneDays() {
+        return this.hasMany(OrderSectionZoneDayTb, 'order_section_zone_id', 'id').query(q => {
+            q.select('id', 'order_section_zone_id', 'date', 'day as dayname')
+        });
+    }
+    sectionZone() {
+        return this.belongsTo(SectionZoneTb, 'section_zone_id', 'id').query(q => {
+            q.select('id', 'zone_id', 'name', 'image', 'price')
         });
     }
 
