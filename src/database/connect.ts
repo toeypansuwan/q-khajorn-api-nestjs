@@ -5,11 +5,11 @@ import * as bookshelf from 'bookshelf';
 const lab_connect_knex = knex({
   client: 'mysql',
   connection: {
-    host     :  environment.databases.lab.host,
-    user     :  environment.databases.lab.username,
-    password :  environment.databases.lab.password,
+    host: environment.databases.lab.host,
+    user: environment.databases.lab.username,
+    password: environment.databases.lab.password,
     database: environment.databases.lab.dbname,
-    charset  : 'utf8'
+    charset: 'utf8'
   },
   pool: {
     propagateCreateError: false,

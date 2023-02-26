@@ -9,8 +9,8 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { InputCreateDto } from './dto/order.dto';
 import { environment } from '@app/environments';
 import { scheduleJob } from 'node-schedule';
-// import generatePayload from 'promptpay-qr';
-import qrcode from 'qrcode';
+import * as generatePayload from 'promptpay-qr';
+import * as qrcode from 'qrcode';
 import { writeFileSync } from 'fs';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
@@ -21,8 +21,6 @@ export class OrderService {
     private confirmedOrders = new Set<string>();
 
     async createOrder(input: InputCreateDto) {
-        // console.log(generatePayload('1-1199-01950-80-2', { amount: 100 }));
-
         const marketModel = await new lab_models.MarketTb().where('id', input.market_id).fetch();
         const zoneModel = await new lab_models.ZoneTb().where('id', input.zone_id).fetch();
         const userModel = await new lab_models.UserTb().where('line_id', input.line_id).fetch();
@@ -164,22 +162,21 @@ export class OrderService {
         const order = await orderModel.where('id', orderModelSave.id).fetch()
         const accountNumber = marketModel.get('mobile_number') || marketModel.get('id_card_number')
         const amount = dataRecipt.totolPrice;
-        // const payload = generatePayload(accountNumber, { amount }) //First parameter : mobileNumber || IDCardNumber
-        // console.log(payload)
+        const payload = generatePayload(accountNumber, { amount }) //First parameter : mobileNumber || IDCardNumber
         // Convert to SVG QR Code
         const updateData = {
             price: dataRecipt.totolPrice,
             qr_code: ''
         }
-        // const options = { type: 'svg', color: { dark: '#000', light: '#fff' } }
-        // qrcode.toString(payload, options, (err, svg) => {
-        //     if (err) {
-        //         throw new Error(`qrcode: ${err}`);
-        //     }
-        //     const fileName = `QRcode_${uuidv4()}.svg`;
-        //     this.writeFile(join(process.cwd(), `upload/qr_code/${fileName}`), svg)
-        //     updateData.qr_code = fileName;
-        // })
+        const options = { type: 'svg', color: { dark: '#000', light: '#fff' } }
+        qrcode.toString(payload, options, (err, svg) => {
+            if (err) {
+                throw new Error(`qrcode: ${err}`);
+            }
+            const fileName = `QRcode_${uuidv4()}.svg`;
+            this.writeFile(`./upload/qr_code/${fileName}`, svg)
+            updateData.qr_code = fileName;
+        })
         await order.clone().save(updateData, { patch: true, method: 'update' })
 
         // const html = `<!DOCTYPE html>
