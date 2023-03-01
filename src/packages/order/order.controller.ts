@@ -2,7 +2,8 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { lab_models } from '@app/database/lab';
+import { Body, Controller, Get, HttpException, Param, Post } from '@nestjs/common';
 import { MarketService } from '../market/market.service';
 import { InputCreateDto } from './dto/order.dto';
 import { OrderService } from './order.service';
@@ -14,11 +15,21 @@ export class OrderController {
     ) { }
     @Post('create')
     async createOrder(@Body() input: InputCreateDto) {
-        return this.orderService.createOrder(input);
+        return await this.orderService.createOrder(input);
     }
     @Get(':id')
     async getOrderId(@Param('id') id: string) {
-        return this.orderService.getOrderId(id);
+        return await this.orderService.getOrderId(id);
+    }
+    @Post('cancel/:id')
+    async cancelOrder(@Param('id') id: string, @Body() input: { lineId: string }) {
+        await this.orderService.checkOrderIsOrder(id, input.lineId);
+        return await this.orderService.cancelOrder(id);
+    }
+    @Post('confirm/:id')
+    async confirmOrder(@Param('id') id: string, @Body() input: { lineId: string }) {
+        await this.orderService.checkOrderIsOrder(id, input.lineId);
+        return await this.orderService.confirmOrder(id);
     }
 
 }

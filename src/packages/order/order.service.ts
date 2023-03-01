@@ -8,7 +8,7 @@ import { lab_connect, lab_models } from '@app/database/lab';
 import { HttpException, Injectable } from '@nestjs/common';
 import { InputCreateDto } from './dto/order.dto';
 import { environment } from '@app/environments';
-import { scheduleJob } from 'node-schedule';
+import { scheduleJob, Job } from 'node-schedule';
 import * as generatePayload from 'promptpay-qr';
 import * as qrcode from 'qrcode';
 import { writeFileSync } from 'fs';
@@ -17,9 +17,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class OrderService {
-    private jobs = new Map<string, any>();
-    private confirmedOrders = new Set<string>();
-
+    private cancellationJob: Job;
     async createOrder(input: InputCreateDto) {
         const marketModel = await new lab_models.MarketTb().where('id', input.market_id).fetch();
         const zoneModel = await new lab_models.ZoneTb().where('id', input.zone_id).fetch();
@@ -114,32 +112,12 @@ export class OrderService {
                     quantity: Number(appliance.amount),
                     price: Number(applianceModel.get('price')) * Number(appliance.amount)
                 }
-                if (input.appliances.length > 0) {
-                    // dataRecipt.other.push(
-                    //     dataRecipt.other.push(this.createContentOther());
-                    // );
-                    // htmlElems.other += `
-                    // <tr>
-                    //     <td>${appliance.amount}</td>
-                    //     <td>${applianceModel.get('name')}</td>
-                    //     <td>${applianceModel.get('price')}</td>
-                    //     <td>x${input.sections.length}</td>
-                    //     <td class="text-end">${applianceData.price}</td>
-                    // </tr>`
-                }
                 appliancePrice += applianceData.price;
                 await new lab_models.OrderAccessoryTb().save(applianceData)
             }
         }
         if (input.service == 1) {
             dataRecipt.service_price = marketModel?.get('service_price');
-            // htmlElems.other += `<tr>
-            //     <td>1</td>
-            //     <td>บริการไฟฟ้า</td>
-            //     <td>${dataRecipt.service_price}</td>
-            //     <td>x${counterDays}</td>
-            //     <td class="text-end">${dataRecipt.service_price * counterDays}</td>
-            // </tr>`
         }
         for (const section of sections) {
             const sectionModel = await new lab_models.SectionZoneTb().where('id', section.id).fetch()
@@ -179,99 +157,6 @@ export class OrderService {
         })
         await order.clone().save(updateData, { patch: true, method: 'update' })
 
-        // const html = `<!DOCTYPE html>
-        // <html lang="en">
-        // <head>
-        //     <meta charset="UTF-8">
-        //     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        //     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        //     <title>Document</title>
-        //     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
-        //         integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
-        //     <style>
-        //         body {
-        //             width: 300px;
-        //             background: #FFFFFF;
-        //             box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.25);
-        //             border-radius: 5px;
-        //             color: #717171;
-        //             font-size: 12px;
-        //         }
-
-        //         .bg-logo {
-        //             background: no-repeat center/100% url('http://localhost:3100/api/v1/upload/market/logo_water.png');
-        //             width: 130px;
-        //         }
-
-        //         .fs-10 {
-        //             font-size: 10px;
-        //         }
-
-        //         .fs-24 {
-        //             font-size: 24px;
-        //         }
-        //     </style>
-        // </head>
-
-        // <body>
-        //     <div class="p-3">
-        //         <div class="mx-auto text-center bg-logo mx-3 mb-3">
-        //             <h1 class="fs-24" id="market_name">${orderData.market_name}</h1>
-        //             <p class="fs-10" id="market_address">ต.บางเค็ม อ.เขาย้อย จ.เพชรบุรี 76140</p>
-        //         </div>
-        //         <p class="text-break mb-0">
-        //             Order: <span id="order">${orderData.order_runnumber}</span><br>
-        //             ชื่อลูกค้า <span id="name">${orderData.user_name}</span><br>
-        //             lineID: <span id="line_id">${input.line_id}</span><br>
-        //             วันที่: <span id="date">${moment(order.get('created_at'), "YYYY-MM-DD").locale('th').add(543, 'years').format("dd D MMM YYYY")}</span>
-        //         </p>
-        //         <table class="table">
-        //             <thead>
-        //                 <tr>
-        //                     <th scope="col">รายการ</th>
-        //                     <th scope="col">วันที่จอง</th>
-        //                     <th scope="col" class="text-end">ราคา</th>
-        //                 </tr>
-        //             </thead>
-        //             <tbody class="table-group-divider text-break">
-        //                 ${htmlElems.product}
-        //                 ${input.appliances.length <= 0 && input.service == 0 ?
-        //         `<tr>
-        //             <td class="fw-bolder">รวม</td>
-        //             <td colspan="2" class="text-end">${totolPrice}</td>
-        //         </tr>` : ``}
-        //             </tbody>
-        //         </table>
-        //         ${input.appliances.length > 0 || input.service == 1 ? `
-        //             <table class="table">
-        //                 <thead>
-        //                     <tr>
-        //                         <th scope="col"></th>
-        //                         <th scope="col">รายการ</th>
-        //                         <th scope="col"></th>
-        //                         <th scope="col">วัน</th>
-        //                         <th scope="col" class="text-end">ราคา</th>
-        //                     </tr>
-        //                 </thead>
-        //                 <tbody class="table-group-divider text-break">
-        //                     ${htmlElems.other}
-        //                     <tr>
-        //                         <td scope="col" colspan="2" class="fw-bolder">รวม</td>
-        //                         <td scope="col" class="text-end fw-bolder" colspan="3">${totolPrice}</td>
-        //                     </tr>
-        //                 </tbody>
-        //             </table>
-        //         `: ``}
-        //         <div class="d-flex">
-        //             <span class="me-auto">ใบเสร็จรับเงิน/ใบกำกับภาษี </span>
-        //             <span>ออกโดย: Q Khajorn</span>
-        //         </div>
-
-        //     </div>
-        // </body>
-
-        // </html>`;
-
         const paymentMessage = this.createPaymentMessage(orderData.order_runnumber, dataRecipt.totolPrice);
         // console.log(paymentMessage);
         const data = {
@@ -285,38 +170,83 @@ export class OrderService {
             ]
         }
         this.sendMessageLine(data);
-        const job = scheduleJob(new Date(Date.now() + environment.countdownTime * 60 * 1000), () => {
-            this.cancelOrder(orderModelSave.id);
-        });
-        this.jobs.set(orderModelSave.id, job);
+        // set up the cancellation countdown
+        this.cancellationJob = scheduleJob(
+            new Date(Date.now() + environment.countdownTime * 60 * 1000),
+            () => {
+                // cancel the order here
+                console.log(`Cancel Order ${orderModelSave.id}`)
+                this.cancelOrder(orderModelSave.id);
+            },
+        );
+
         return {
             "res_code": 200,
-            "message": "success",
+            "message": "wait",
             "order_id": orderData.order_runnumber
         }
     }
-    async cancelOrder(orderId: string) {
-        const job = this.jobs.get(orderId);
-        if (!job) {
-            return;
-        }
-
-        if (this.confirmedOrders.has(orderId)) {
-            console.log(`Order ${orderId} has been confirmed, cancelling the timer.`);
-            job.cancel();
-            this.jobs.delete(orderId);
-            return;
-        }
-
-        console.log(`Cancelling order ${orderId} due to timeout.`);
-        this.jobs.delete(orderId);
+    async cancelOrder(orderId): Promise<{
+        res_code: number,
+        message: string
+    }> {
         const order = await new lab_models.OrderTb().where('id', orderId).fetch();
-        if (order) {
-            await order.clone().save({
-                status_pay: 'fail',
-            }, { patch: true, method: 'update' })
+        if (order.get('status_pay') == 'success') {
+            throw new Error('รายการนี้ชำระเงินแล้ว ไม่สามารถยกเลิกรายการได้')
+        }
+        // perform logic to cancel the order here
+        const response = await this.updateStatusOrder(orderId, 'fail', 'การจองถูกยกเลิก');
+        // cancel the cancellation countdown job
+        if (this.cancellationJob) {
+            this.cancellationJob.cancel();
+            this.cancellationJob = null;
+        }
+        return response;
+    }
+    async confirmOrder(orderId): Promise<any> {
+        // perform logic to confirm the order here
+        const order = await new lab_models.OrderTb().where('id', orderId).fetch({ withRelated: ['orderAccessorys', 'orderSectionZone.orderSectionZoneDays', 'orderSectionZone.sectionZone', 'market.marketDays', 'users'] });
+        if (order.get('status_pay') == 'fail') {
+            throw new Error('รายการนี้ถูกยกเลิกไปแล้ว')
+        }
+        const reciptJson = this.createRecipt(order.toJSON());
+        const response = await this.updateStatusOrder(orderId, 'success', 'ชำเงินเสร็จสิ้น');
 
-            console.log(`Order ${orderId} has been cancelled.`);
+        const reciptWrap = this.wrapMessage(reciptJson);
+        const data = {
+            to: order.related('users').get('line_id'),
+            messages: [
+                {
+                    type: "text",
+                    text: `ชำระเงินรายการ: ${order.get('order_runnumber')} เสร็จสิ้น`
+                },
+                reciptWrap
+            ]
+        }
+        await this.sendMessageLine(data);
+        // cancel the cancellation countdown job
+        if (this.cancellationJob) {
+            this.cancellationJob.cancel();
+            this.cancellationJob = null;
+        }
+
+        return response;
+    }
+
+    async updateStatusOrder(id: string, status: string, message: string): Promise<{
+        res_code: number,
+        message: string
+    }> {
+        const order = await new lab_models.OrderTb().where('id', id).fetch();
+        if (!order) {
+            throw new HttpException('ไม่พบรายการสั่งจอง รายการนี้', 404);
+        }
+        await order.clone().save({
+            status_pay: status,
+        }, { patch: true, method: 'update' })
+        return {
+            res_code: 200,
+            message,
         }
     }
     async sendMessageLine(data: Object) {
@@ -331,86 +261,19 @@ export class OrderService {
             console.log(res)
             return res;
         } catch (err) {
-            console.error(err.response.data)
+            throw new HttpException(err.response.data, 500);
         }
     }
-    createOtherBox() {
-        return {
-            type: "box",
-            layout: "vertical",
-            spacing: "none",
-            contents: [
-                {
-                    type: "text",
-                    text: "บริการไฟฟ้า (฿100)",
-                    contents: []
-                },
-                {
-                    type: "box",
-                    layout: "baseline",
-                    contents: [
-                        {
-                            type: "text",
-                            text: "100 x 4 วัน",
-                            weight: "regular",
-                            size: "sm",
-                            color: "#AAAAAA",
-                            flex: 0,
-                            margin: "none",
-                            contents: []
-                        },
-                        {
-                            type: "text",
-                            text: "฿400.00",
-                            size: "sm",
-                            color: "#555555FF",
-                            align: "end",
-                            contents: []
-                        }
-                    ]
-                }
-            ]
+    async checkOrderIsOrder(id: string, lineId: string) {
+        const user = await new lab_models.UserTb().where('line_id', lineId).fetch();
+        if (!user) {
+            throw new Error("ไม่พบข้อมูลลูกค้า");
         }
-    }
-    createSectionBox(sectionModel, section) {
-        return {
-            type: "box",
-            layout: "vertical",
-            spacing: "sm",
-            contents: [
-                {
-                    type: "text",
-                    text: `แผง ${sectionModel.get('name')}`,
-                    contents: []
-                },
-                ...section.days.map(day => {
-                    return {
-                        type: "box",
-                        layout: "baseline",
-                        contents: [
-                            {
-                                type: "text",
-                                text: `วันที่จอง ${moment(day, 'YYYY-MM-DD').locale('th').add(543, 'years').format("DD/MM/YY")}`,
-                                weight: "regular",
-                                size: "sm",
-                                color: "#AAAAAA",
-                                flex: 0,
-                                margin: "sm",
-                                contents: []
-                            },
-                            {
-                                type: "text",
-                                text: `฿${sectionModel.get('price')}`,
-                                size: "sm",
-                                color: "#555555FF",
-                                align: "end",
-                                contents: []
-                            }
-                        ]
-                    }
-                })
-            ]
+        const order = await new lab_models.OrderTb().where('id', id).where('user_id', user.get('id')).fetch();
+        if (!order) {
+            throw new Error("คุณไม่มีสิทธิ ในการยกเลิกรายการนี้");
         }
+
     }
     writeFile(filePath: string, content: string) {
         try {
@@ -435,12 +298,8 @@ export class OrderService {
                     url: "https://sv1.picz.in.th/images/2023/02/23/LFR3B9.png",
                     size: "full",
                     aspectRatio: "20:13",
-                    aspectMode: "cover",
-                    action: {
-                        type: "uri",
-                        label: "Action",
-                        uri: "https://linecorp.com/"
-                    }
+                    aspectMode: "fit",
+                    offsetTop: "10px"
                 },
                 body: {
                     type: "box",
@@ -527,8 +386,9 @@ export class OrderService {
             }
         );
     }
-    createRecipt(input) {
-        const receipt = {
+    createRecipt = (order) => {
+        let countDays = 0;
+        const data = {
             type: "bubble",
             header: {
                 type: "box",
@@ -547,21 +407,21 @@ export class OrderService {
                 size: "xl",
                 aspectRatio: "20:13",
                 aspectMode: "cover",
-                action: {
-                    type: "uri",
-                    label: "Action",
-                    uri: "https://linecorp.com"
-                }
+                // action: {
+                //     type: "uri",
+                //     label: "Action",
+                //     uri: "https://linecorp.com"
+                // }
             },
             body: {
                 type: "box",
                 layout: "vertical",
                 spacing: "md",
-                action: {
-                    type: "uri",
-                    label: "Action",
-                    uri: "https://linecorp.com"
-                },
+                // action: {
+                //     type: "uri",
+                //     label: "Action",
+                //     uri: "https://linecorp.com"
+                // },
                 contents: [
                     {
                         type: "box",
@@ -577,7 +437,7 @@ export class OrderService {
                             },
                             {
                                 type: "text",
-                                text: `${input.name}`,
+                                text: order.market_name,
                                 color: "#0C0955FF",
                                 align: "center",
                                 contents: []
@@ -593,14 +453,14 @@ export class OrderService {
                         contents: [
                             {
                                 type: "text",
-                                text: "KJ-20230113-41898232",
+                                text: order.order_runnumber,
                                 size: "sm",
                                 align: "center",
                                 contents: []
                             },
                             {
                                 type: "text",
-                                text: "16 FEB 2023 / 01:05 PM",
+                                text: moment(order.created_at, 'YYYY-MM-DD HH:mm:ss').add(543, 'year').format('D/MM/YY - HH:mm น.'),
                                 size: "sm",
                                 color: "#807F7FFF",
                                 align: "center",
@@ -641,37 +501,42 @@ export class OrderService {
                         type: "box",
                         layout: "vertical",
                         spacing: "sm",
-                        contents: [
+                        contents: order.orderSectionZone.flatMap((order_section_zone) => [
                             {
                                 type: "text",
-                                text: "แผง 28",
+                                text: `แผง ${order_section_zone.sectionZone.name}`,
                                 contents: []
                             },
-                            {
-                                type: "box",
-                                layout: "baseline",
-                                contents: [
-                                    {
-                                        type: "text",
-                                        text: "วันที่จอง 20/11/65",
-                                        weight: "regular",
-                                        size: "sm",
-                                        color: "#AAAAAA",
-                                        flex: 0,
-                                        margin: "sm",
-                                        contents: []
-                                    },
-                                    {
-                                        type: "text",
-                                        text: "฿120.00",
-                                        size: "sm",
-                                        color: "#555555FF",
-                                        align: "end",
-                                        contents: []
-                                    }
-                                ]
-                            }
-                        ]
+                            ...order_section_zone.orderSectionZoneDays.map((order_section_zone_day) => {
+                                countDays++;
+                                return {
+                                    type: "box",
+                                    layout: "baseline",
+                                    contents: [
+                                        {
+                                            type: "text",
+                                            text: `วันที่จอง ${moment(order_section_zone_day.date, 'YYYY-MM-DD HH:mm:ss').add(543, 'year').format('D/MM/YY')}`,
+                                            weight: "regular",
+                                            size: "sm",
+                                            color: "#AAAAAA",
+                                            flex: 0,
+                                            margin: "sm",
+                                            contents: []
+                                        },
+                                        {
+                                            type: "text",
+                                            text: `฿${order_section_zone.price.toFixed(2)}`,
+                                            size: "sm",
+                                            color: "#555555FF",
+                                            align: "end",
+                                            contents: []
+                                        }
+                                    ]
+                                }
+                            })
+
+                        ])
+
                     },
                     {
                         type: "box",
@@ -687,7 +552,7 @@ export class OrderService {
                             }
                         ]
                     },
-                    {
+                    order.service || order.orderAccessorys.length > 0 ? {
                         type: "box",
                         layout: "vertical",
                         contents: [
@@ -699,15 +564,24 @@ export class OrderService {
                                 contents: []
                             }
                         ]
+                    } : {
+                        type: "box",
+                        layout: "vertical",
+                        position: "absolute",
+                        contents: [
+                            {
+                                type: "spacer"
+                            }
+                        ]
                     },
-                    {
+                    order.service ? {
                         type: "box",
                         layout: "vertical",
                         spacing: "none",
                         contents: [
                             {
                                 type: "text",
-                                text: "บริการไฟฟ้า (฿100)",
+                                text: `บริการไฟฟ้า (฿${order.market.service_price})`,
                                 contents: []
                             },
                             {
@@ -716,7 +590,7 @@ export class OrderService {
                                 contents: [
                                     {
                                         type: "text",
-                                        text: "100 x 4 วัน",
+                                        text: `${order.market.service_price} x ${countDays} วัน`,
                                         weight: "regular",
                                         size: "sm",
                                         color: "#AAAAAA",
@@ -726,7 +600,7 @@ export class OrderService {
                                     },
                                     {
                                         type: "text",
-                                        text: "฿400.00",
+                                        text: `฿${(order.market.service_price * countDays).toFixed(2)}`,
                                         size: "sm",
                                         color: "#555555FF",
                                         align: "end",
@@ -735,44 +609,65 @@ export class OrderService {
                                 ]
                             }
                         ]
+                    } : {
+                        type: "box",
+                        layout: "vertical",
+                        position: "absolute",
+                        contents: [
+                            {
+                                type: "spacer"
+                            }
+                        ]
                     },
-                    {
+                    order.orderAccessorys.length > 0 ? {
                         type: "box",
                         layout: "vertical",
                         spacing: "none",
+                        contents:
+                            order.orderAccessorys.flatMap((order_accessory) => [
+                                {
+                                    type: "text",
+                                    text: `${order_accessory.name} (฿${order_accessory.quantity * order_accessory.price})`,
+                                    contents: []
+                                },
+                                {
+                                    type: "box",
+                                    layout: "baseline",
+                                    contents: [
+                                        {
+                                            type: "text",
+                                            text: `${order_accessory.quantity * order_accessory.price} x ${countDays} วัน`,
+                                            weight: "regular",
+                                            size: "sm",
+                                            color: "#AAAAAA",
+                                            flex: 0,
+                                            margin: "none",
+                                            contents: []
+                                        },
+                                        {
+                                            type: "text",
+                                            text: `฿${(order_accessory.quantity * order_accessory.price * countDays).toFixed(2)}`,
+                                            size: "sm",
+                                            color: "#555555FF",
+                                            align: "end",
+                                            contents: []
+                                        }
+                                    ]
+                                }
+                            ])
+
+
+                    } : {
+                        type: "box",
+                        layout: "vertical",
+                        position: "absolute",
                         contents: [
                             {
-                                type: "text",
-                                text: "หลอดไฟ (฿60)",
-                                contents: []
-                            },
-                            {
-                                type: "box",
-                                layout: "baseline",
-                                contents: [
-                                    {
-                                        type: "text",
-                                        text: "60 x 4 วัน",
-                                        weight: "regular",
-                                        size: "sm",
-                                        color: "#AAAAAA",
-                                        flex: 0,
-                                        margin: "none",
-                                        contents: []
-                                    },
-                                    {
-                                        type: "text",
-                                        text: "฿240.00",
-                                        size: "sm",
-                                        color: "#555555FF",
-                                        align: "end",
-                                        contents: []
-                                    }
-                                ]
+                                type: "spacer"
                             }
                         ]
                     },
-                    {
+                    order.service || order.orderAccessorys.length > 0 ? {
                         type: "box",
                         layout: "vertical",
                         contents: [
@@ -784,6 +679,15 @@ export class OrderService {
                             {
                                 type: "spacer",
                                 size: "md"
+                            }
+                        ]
+                    } : {
+                        type: "box",
+                        layout: "vertical",
+                        position: "absolute",
+                        contents: [
+                            {
+                                type: "spacer"
                             }
                         ]
                     },
@@ -801,17 +705,17 @@ export class OrderService {
                                         text: "รวม",
                                         weight: "bold",
                                         size: "xl",
-                                        color: "#000000FF",
+                                        color: "#E07474FF",
                                         flex: 0,
                                         margin: "none",
                                         contents: []
                                     },
                                     {
                                         type: "text",
-                                        text: "฿240.00",
+                                        text: `฿${(order.price).toFixed(2)}`,
                                         weight: "bold",
                                         size: "xl",
-                                        color: "#000000FF",
+                                        color: "#E07474FF",
                                         align: "end",
                                         contents: []
                                     }
@@ -854,7 +758,8 @@ export class OrderService {
                     }
                 ]
             }
-        };
+        }
+        return data;
     }
     async getOrderId(order_runnumber: string) {
         const order = await new lab_models.OrderTb().where('order_runnumber', order_runnumber).fetch({ withRelated: ['orderAccessorys', 'orderSectionZone.orderSectionZoneDays', 'orderSectionZone.sectionZone', 'market.marketDays'] })

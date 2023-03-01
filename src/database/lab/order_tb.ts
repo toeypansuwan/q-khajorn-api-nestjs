@@ -7,6 +7,7 @@ import { OrderTbAttributes, OrderTbEntity } from "./entities/OrderTbEntity";
 import { MarketTb } from "./market_tb";
 import { OrderAccessoryTb } from './order_accessory_tb'
 import { OrderSectionZoneTb } from "./order_section_zone_tb";
+import { UserTb } from "./user_tb";
 
 export class OrderTb extends lab_connect.Model<OrderTb> {
 
@@ -95,7 +96,7 @@ export class OrderTb extends lab_connect.Model<OrderTb> {
     orderAccessorys() {
         return this.hasMany(OrderAccessoryTb, 'order_id', 'id').query(q => {
             q.innerJoin('accessories_tb', 'order_accessory_tb.assessory_id', 'accessories_tb.id')
-            q.select('accessories_tb.id', 'order_accessory_tb.order_id', 'accessories_tb.name', 'accessories_tb.price', 'accessories_tb.image')
+            q.select('accessories_tb.id', 'order_accessory_tb.order_id', 'accessories_tb.name', 'accessories_tb.price', 'accessories_tb.image', 'order_accessory_tb.quantity')
         });
     }
     orderSectionZone() {
@@ -106,6 +107,11 @@ export class OrderTb extends lab_connect.Model<OrderTb> {
     market() {
         return this.belongsTo(MarketTb, 'market_id', 'id').query(q => {
             q.select('id', 'name', 'image', 'time_open', 'time_close', 'service_price')
+        });
+    }
+    users() {
+        return this.belongsTo(UserTb, 'user_id', 'id').query(q => {
+            q.select('id', 'line_id', 'line_username', 'image',)
         });
     }
 
