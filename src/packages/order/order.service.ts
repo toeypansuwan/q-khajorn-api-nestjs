@@ -2,11 +2,13 @@
 https://docs.nestjs.com/providers#services
 */
 import * as moment from 'moment';
+// import 'moment/locale/th'
+// moment.locale('th')
 import * as crypto from 'crypto';
 import axios from 'axios';
 import { lab_connect, lab_models } from '@app/database/lab';
 import { HttpException, Injectable } from '@nestjs/common';
-import { InputCreateDto } from './dto/order.dto';
+import { CreateNotification, InputCreateDto } from './dto/order.dto';
 import { environment } from '@app/environments';
 import { scheduleJob, Job } from 'node-schedule';
 import * as generatePayload from 'promptpay-qr';
@@ -17,7 +19,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class OrderService {
-    private cancellationJob: Job;
+    // private cancellationJob: Job;
+    private jobMap = new Map<string, Job>();
     async createOrder(input: InputCreateDto) {
         const marketModel = await new lab_models.MarketTb().where('id', input.market_id).fetch();
         const zoneModel = await new lab_models.ZoneTb().where('id', input.zone_id).fetch();
@@ -140,8 +143,7 @@ export class OrderService {
         const order = await orderModel.where('id', orderModelSave.id).fetch()
         const accountNumber = marketModel.get('mobile_number') || marketModel.get('id_card_number')
         const amount = dataRecipt.totolPrice;
-        const payload = generatePayload(accountNumber, { amount }) //First parameter : mobileNumber || IDCardNumber
-        // Convert to SVG QR Code
+        const payload = generatePayload(accountNumber, { amount })
         const updateData = {
             price: dataRecipt.totolPrice,
             qr_code: ''
@@ -170,15 +172,15 @@ export class OrderService {
             ]
         }
         this.sendMessageLine(data);
-        // set up the cancellation countdown
-        this.cancellationJob = scheduleJob(
+        const job: Job = scheduleJob(
             new Date(Date.now() + environment.countdownTime * 60 * 1000),
             () => {
-                // cancel the order here
                 console.log(`Cancel Order ${orderModelSave.id}`)
                 this.cancelOrder(orderModelSave.id);
             },
         );
+        this.jobMap.set(orderModelSave.id, job);
+
 
         return {
             "res_code": 200,
@@ -194,13 +196,43 @@ export class OrderService {
         if (order.get('status_pay') == 'success') {
             throw new Error('รายการนี้ชำระเงินแล้ว ไม่สามารถยกเลิกรายการได้')
         }
-        // perform logic to cancel the order here
+
         const response = await this.updateStatusOrder(orderId, 'fail', 'การจองถูกยกเลิก');
-        // cancel the cancellation countdown job
-        if (this.cancellationJob) {
-            this.cancellationJob.cancel();
-            this.cancellationJob = null;
+
+        const job = this.jobMap.get(orderId);
+        if (job) {
+            job.cancel();
+            this.jobMap.delete(orderId);
         }
+        const notificationModel = await new lab_models.Notification().where('order_id', orderId).where('status', 1).fetchAll({ withRelated: ['sectionZone'] });
+        notificationModel.forEach(async (notification) => {
+            notification.set('status', 0);
+            await notification.save();
+            const sectionZone = notification.related('sectionZone')
+            const data = {
+                to: notification.get('line_id'),
+                messages: [
+                    {
+                        type: "text",
+                        text: `ตอนนี้คุณสามารถจองแผงที่ ${sectionZone.get('name')} ในวันที่ ${moment(notification.get('date'), "YYYY-MM-DD").add(543, 'year').format("D MMMM YYYY")}`
+                    },
+                ]
+            }
+            this.sendMessageLine(data);
+        });
+        // for (const notification of notificationModel.clone().toJSON()) {
+        // await (await new lab_models.Notification().where('id', notification.id).fetch()).save({ status: 0 }, { method: 'update' })
+        // const data = {
+        //     to: notification.line_id,
+        //     messages: [
+        //         {
+        //             type: "text",
+        //             text: `ตอนนี้คุณสามารถจองแผงที่ ${notification.sectionZone.name} ในวันที่ ${moment(notification.date, "YYYY-MM-DD").add(543, 'year').format("D MMMM YYYY")}`
+        //         },
+        //     ]
+        // }
+        // this.sendMessageLine(data);
+        // }
         return response;
     }
     async confirmOrder(orderId): Promise<any> {
@@ -224,12 +256,25 @@ export class OrderService {
             ]
         }
         await this.sendMessageLine(data);
-        // cancel the cancellation countdown job
-        if (this.cancellationJob) {
-            this.cancellationJob.cancel();
-            this.cancellationJob = null;
-        }
 
+        const market = await new lab_models.MarketTb().where('id', order.get('market_id')).fetch({ withRelated: ['user'] });
+        const dataOwner = {
+            to: market.related('user').get('line_id'),
+            messages: [
+                {
+                    type: "text",
+                    text: `รายการ: ${order.get('order_runnumber')} ชำระเงินเสร็จสิ้นเสร็จสิ้น`
+                },
+                this.messageConfirmToOwner(order.get('order_runnumber'))
+            ]
+        }
+        await this.sendMessageLine(dataOwner);
+
+        const job = this.jobMap.get(orderId);
+        if (job) {
+            job.cancel();
+            this.jobMap.delete(orderId);
+        }
         return response;
     }
 
@@ -258,7 +303,6 @@ export class OrderService {
         }
         try {
             const res = await (await axios.post(`https://api.line.me/v2/bot/message/push`, data, config)).data
-            console.log(res)
             return res;
         } catch (err) {
             throw new HttpException(err.response.data, 500);
@@ -273,7 +317,6 @@ export class OrderService {
         if (!order) {
             throw new Error("คุณไม่มีสิทธิ ในการยกเลิกรายการนี้");
         }
-
     }
     writeFile(filePath: string, content: string) {
         try {
@@ -761,8 +804,186 @@ export class OrderService {
         }
         return data;
     }
+    createCancelMessage() {
+        const data = {
+            type: "bubble",
+            hero: {
+                type: "image",
+                url: "https://sv1.picz.in.th/images/2023/02/22/Lelbv2.png",
+                align: "center",
+                gravity: "center",
+                size: "3xl",
+                aspectRatio: "10:9",
+                aspectMode: "fit",
+            },
+            body: {
+                type: "box",
+                layout: "vertical",
+                spacing: "md",
+                contents: [
+                    {
+                        type: "text",
+                        text: "ชำระเงินสำเร็จ!",
+                        weight: "bold",
+                        size: "xl",
+                        gravity: "center",
+                        wrap: true,
+                        contents: []
+                    },
+                    {
+                        type: "text",
+                        text: "คุณสามารถดูรายละเอียดการจองได้ โดยกดดูรายละเอียดด่านล่าง",
+                        weight: "regular",
+                        color: "#AAAAAA",
+                        align: "start",
+                        gravity: "top",
+                        wrap: true,
+                        contents: []
+                    },
+                    {
+                        type: "separator"
+                    },
+                    {
+                        type: "box",
+                        layout: "vertical",
+                        contents: [
+                            {
+                                type: "text",
+                                text: "หมายเลขออเดอร์",
+                                color: "#AAAAAA",
+                                contents: []
+                            },
+                            {
+                                type: "text",
+                                text: "#2023011341898232",
+                                weight: "regular",
+                                color: "#E07474FF",
+                                contents: []
+                            },
+                            {
+                                type: "spacer"
+                            }
+                        ]
+                    },
+                    {
+                        type: "button",
+                        action: {
+                            type: "uri",
+                            label: "ดูรายละเอียด",
+                            uri: `${environment.WEB_URL}/profile-market/`
+                        }
+
+                    }
+                ]
+            }
+        }
+    }
+    messageConfirmToOwner(order_runnumber: string) {
+        const data = {
+            type: "bubble",
+            hero: {
+                type: "image",
+                url: "https://sv1.picz.in.th/images/2023/02/22/Lelbv2.png",
+                align: "center",
+                gravity: "center",
+                size: "3xl",
+                aspectRatio: "10:9",
+                aspectMode: "fit",
+                action: {
+                    type: "uri",
+                    label: "Action",
+                    uri: "https://linecorp.com/"
+                }
+            },
+            body: {
+                type: "box",
+                layout: "vertical",
+                spacing: "md",
+                contents: [
+                    {
+                        type: "text",
+                        text: "ชำระเงินสำเร็จ!",
+                        weight: "bold",
+                        size: "xl",
+                        gravity: "center",
+                        wrap: true,
+                        contents: []
+                    },
+                    {
+                        type: "text",
+                        text: "คุณสามารถดูรายละเอียดการจองได้ โดยกดดูรายละเอียดด่านล่าง",
+                        weight: "regular",
+                        color: "#AAAAAA",
+                        align: "start",
+                        gravity: "top",
+                        wrap: true,
+                        contents: []
+                    },
+                    {
+                        type: "separator"
+                    },
+                    {
+                        type: "box",
+                        layout: "vertical",
+                        contents: [
+                            {
+                                type: "text",
+                                text: "หมายเลขออเดอร์",
+                                color: "#AAAAAA",
+                                contents: []
+                            },
+                            {
+                                type: "text",
+                                text: `${order_runnumber}`,
+                                weight: "regular",
+                                color: "#E07474FF",
+                                contents: []
+                            },
+                            {
+                                type: "spacer"
+                            }
+                        ]
+                    },
+                    {
+                        type: "button",
+                        action: {
+                            type: "uri",
+                            label: "ดูรายละเอียด",
+                            uri: `${environment.WEB_URL}/profile-market/order/${order_runnumber}`
+                        }
+                    }
+                ]
+            }
+        }
+        const wrapData = this.wrapMessage(data);
+        return wrapData;
+    }
+
     async getOrderId(order_runnumber: string) {
         const order = await new lab_models.OrderTb().where('order_runnumber', order_runnumber).fetch({ withRelated: ['orderAccessorys', 'orderSectionZone.orderSectionZoneDays', 'orderSectionZone.sectionZone', 'market.marketDays'] })
         return order;
+    }
+
+    async notificationOrder(order_id: string, input: CreateNotification) {
+        const order = await new lab_models.OrderTb().where('id', order_id).fetch()
+        if (!order) {
+            throw new HttpException('ไม่พบรายการจองนี้', 404);
+        }
+        const notification = await new lab_models.Notification().where('order_id', order_id).where('line_id', input.lineId).where('status', 1).fetch()
+        if (notification) {
+            throw new Error('รายการนี้คุณมีการแจ้งเตือนแล้ว')
+        }
+        const notificationModel = await new lab_models.Notification({
+            order_id,
+            line_id: input.lineId,
+            status: 1,
+            section_zone_id: input.id,
+            date: input.date
+        }).save();
+        return {
+            res_code: 200,
+            message: 'บันทึกการแจ้งเตือนสำเร็จ',
+            notification: await new lab_models.Notification().where('id', notificationModel.id).fetch({ columns: ['id', 'order_id', 'section_zone_id', 'date'] })
+        }
     }
 }

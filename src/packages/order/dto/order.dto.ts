@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { ArrayNotEmpty, IsArray, IsDateString, IsIn, IsNotEmpty, IsNumber, IsString, registerDecorator, Validate, ValidateIf, ValidateNested, ValidationArguments, ValidationOptions, ValidatorConstraint, ValidatorConstraintInterface } from "class-validator"
+import { ArrayNotEmpty, IsArray, IsDate, IsDateString, IsIn, IsNotEmpty, IsNumber, IsString, registerDecorator, Validate, ValidateIf, ValidateNested, ValidationArguments, ValidationOptions, ValidatorConstraint, ValidatorConstraintInterface } from "class-validator"
 
 @ValidatorConstraint({ name: 'string-or-number', async: false })
 export class IsNumberOrString implements ValidatorConstraintInterface {
@@ -62,4 +62,16 @@ export class Appliance {
     @IsNotEmpty()
     @Validate(IsNumberOrString)
     amount: number | string;
+}
+
+export class CreateNotification {
+    @IsNotEmpty()
+    lineId: string;
+
+    @IsNotEmpty()
+    id: number | string;
+
+    @IsNotEmpty()
+    @IsDateString()
+    date: string
 }

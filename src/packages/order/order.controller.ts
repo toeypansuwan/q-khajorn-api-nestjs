@@ -3,9 +3,9 @@ https://docs.nestjs.com/controllers#controllers
 */
 
 import { lab_models } from '@app/database/lab';
-import { Body, Controller, Get, HttpException, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, Param, Post } from '@nestjs/common';
 import { MarketService } from '../market/market.service';
-import { InputCreateDto } from './dto/order.dto';
+import { CreateNotification, InputCreateDto } from './dto/order.dto';
 import { OrderService } from './order.service';
 
 @Controller()
@@ -30,6 +30,35 @@ export class OrderController {
     async confirmOrder(@Param('id') id: string, @Body() input: { lineId: string }) {
         await this.orderService.checkOrderIsOrder(id, input.lineId);
         return await this.orderService.confirmOrder(id);
+    }
+
+    @Post('notification')
+    async getNotificationOrder(@Body() input: { lineId: string; }) {
+        const user = await new lab_models.UserTb().where('line_id', input.lineId).fetch();
+        if (!user) {
+            throw new Error("ไม่พบข้อมูลลูกค้า");
+        }
+        const notification = await new lab_models.Notification().where('line_id', input.lineId).where('status', 1).fetchAll({ columns: ['id', 'order_id', 'section_zone_id', 'date'] })
+        return notification;
+    }
+    @Post('notification/:id')
+    async notificationOrder(@Param('id') id: string, @Body() input: CreateNotification) {
+        const user = await new lab_models.UserTb().where('line_id', input.lineId).fetch();
+        if (!user) {
+            throw new Error("ไม่พบข้อมูลลูกค้า");
+        }
+        return await this.orderService.notificationOrder(id, input);
+    }
+    @Delete('notification/:id/delete')
+    async notificationOrderDelete(@Param('id') id: string) {
+        const notification = await new lab_models.Notification().where('id', id).fetch();
+        if (!notification) {
+            throw new Error("ไม่พบบันทึกการแจ้งเตือน");
+        }
+        await notification.destroy();
+        return {
+            res_code: 200,
+        };
     }
 
 }

@@ -10,6 +10,7 @@ import { UserTb } from './lab/user_tb'
 import { OrderTb } from './lab/order_tb'
 import { OrderAccessoryTb } from './lab/order_accessory_tb'
 import { OrderSectionZoneDayTb } from './lab/order_section_zone_day_tb'
+import { Notification } from './lab/notification'
 
 const lab_models = {
     OwnersTb,
@@ -23,6 +24,8 @@ const lab_models = {
     OrderTb,
     OrderAccessoryTb,
     OrderSectionZoneDayTb,
+    Notification,
+    
 }
 
 

@@ -2,9 +2,11 @@
 https://docs.nestjs.com/controllers#controllers
 */
 
+import { lab_models } from '@app/database/lab';
 import { Body, Controller, Get, Param, Post, Query, UseGuards, Request } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from '../auth/local/local-auth.guard';
-import { MarketFilterInput, Location, Section } from './dto/market.dto';
+import { MarketFilterInput, Location, Section, KeywordMarket } from './dto/market.dto';
 import { MarketService } from './market.service';
 
 @Controller()
@@ -59,5 +61,14 @@ export class MarketController {
     @Get('/:id/service-price')
     getServicePrice(@Param('id') id: string) {
         return this.marketService.getServicePrice(id);
+    }
+
+    @Get('')
+    async getAllMarket(@Query('keyword') keyword: KeywordMarket) {
+        const marketModel = new lab_models.MarketTb();
+        if (keyword)
+            marketModel.where("name", 'LIKE', `%${keyword}%`)
+
+        return await marketModel.fetchAll({ columns: ['id', 'name', 'image'] });
     }
 }

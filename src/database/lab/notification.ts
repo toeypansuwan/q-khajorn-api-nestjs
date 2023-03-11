@@ -1,44 +1,27 @@
 import { IBookshelf } from "@app/types/IBookshelf";
 import Bluebird from "bluebird";
 import Bookshelf from "bookshelf";
-import * as moment from "moment";
+//import * as moment from "moment";
 import { lab_connect } from "../connect";
-import { MarketTbAttributes, MarketTbEntity } from "./entities/MarketTbEntity";
-import { GalleriesTb } from "./galleries_tb";
-import { MarketDaysTb } from "./market_days_tb";
-import { UserTb } from "./user_tb";
+import { NotificationAttributes, NotificationEntity } from "./entities/NotificationEntity";
+import { SectionZoneTb } from "./section_zone_tb";
 
-export class MarketTb extends lab_connect.Model<MarketTb> {
+export class Notification extends lab_connect.Model<Notification> {
 
 
-    get tableName() { return 'market_tb'; }
-    get hasTimestamps() { return true; }
+    get tableName() { return 'notification'; }
+    get hasTimestamps() { return false; }
     get requireFetch() { return false; }
-    get columns() {
-        return {
-            detail: {
-                charset: 'utf8mb4',
-                collate: 'utf8mb4_unicode_ci',
-            },
-        };
-    }
 
-    toJSON(): MarketTbEntity {
-        var attrs = lab_connect.Model.prototype.toJSON.apply(this, arguments) as MarketTbEntity
-        if (attrs.created_at) {
-            attrs.created_at = moment(this.get('created_at')).format('YYYY-MM-DD HH:mm:ss');
-            attrs.created_at = (attrs.created_at == "Invalid date") ? null : attrs.created_at;
-        }
-        if (attrs.updated_at) {
-            attrs.updated_at = moment(this.get('updated_at')).format('YYYY-MM-DD HH:mm:ss');
-            attrs.updated_at = (attrs.updated_at == "Invalid date") ? null : attrs.updated_at;
-        }
+    toJSON(): NotificationEntity {
+        var attrs = lab_connect.Model.prototype.toJSON.apply(this, arguments) as NotificationEntity
+
         return attrs;
     }
 
-    fetch(options?: IBookshelf.FetchOptions): Bluebird<MarketTb> {
+    fetch(options?: IBookshelf.FetchOptions): Bluebird<Notification> {
         if (options && options.excludeColumns && Array.isArray(options.excludeColumns)) {
-            let columns = MarketTbAttributes.filter(column => {
+            let columns = NotificationAttributes.filter(column => {
                 return options.excludeColumns.indexOf(column) == -1;
             })
             if (!Array.isArray(options.columns)) {
@@ -56,9 +39,9 @@ export class MarketTb extends lab_connect.Model<MarketTb> {
         return super.fetch(options);
     }
 
-    fetchPage(options?: IBookshelf.FetchPageOptions): Bluebird<Bookshelf.Collection<MarketTb> & Bookshelf.Pagination> {
+    fetchPage(options?: IBookshelf.FetchPageOptions): Bluebird<Bookshelf.Collection<Notification> & Bookshelf.Pagination> {
         if (options && options.excludeColumns && Array.isArray(options.excludeColumns)) {
-            let columns = MarketTbAttributes.filter(column => {
+            let columns = NotificationAttributes.filter(column => {
                 return options.excludeColumns.indexOf(column) == -1;
             })
             if (!Array.isArray(options.columns)) {
@@ -80,9 +63,9 @@ export class MarketTb extends lab_connect.Model<MarketTb> {
         return super.fetchPage(options)
     }
 
-    fetchAll(options?: IBookshelf.FetchAllOptions): Bluebird<Bookshelf.Collection<MarketTb>> {
+    fetchAll(options?: IBookshelf.FetchAllOptions): Bluebird<Bookshelf.Collection<Notification>> {
         if (options && options.excludeColumns && Array.isArray(options.excludeColumns)) {
-            let columns = MarketTbAttributes.filter(column => {
+            let columns = NotificationAttributes.filter(column => {
                 return options.excludeColumns.indexOf(column) == -1;
             })
             if (!Array.isArray(options.columns)) {
@@ -100,16 +83,8 @@ export class MarketTb extends lab_connect.Model<MarketTb> {
         return super.fetchAll(options)
     }
 
-    galleries() {
-        return this.hasMany(GalleriesTb, 'market_id', 'id');
-    }
-    marketDays() {
-        return this.hasMany(MarketDaysTb, 'market_id', 'id');
-    }
-    user() {
-        return this.belongsTo(UserTb, 'admin_id', 'id').query(q => {
-            q.select('id', 'line_id', 'line_username', 'image',)
-        });
+    sectionZone() {
+        return this.belongsTo(SectionZoneTb, "section_zone_id", 'id')
     }
 
 }

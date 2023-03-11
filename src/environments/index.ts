@@ -15,6 +15,7 @@ export const environment = {
         channelAccessToken: process.env.CHANNEl_ACCESS_TOKEN,
         channelSecret: process.env.CHANNEL_SECRET,
         defaultRichMenu: process.env.DEFAULT_RICHMENU,
+        loginRichMenu: process.env.LOGIN_RICHMENU
     },
     API_URL: process.env.API_URL,
     countdownTime: 1,

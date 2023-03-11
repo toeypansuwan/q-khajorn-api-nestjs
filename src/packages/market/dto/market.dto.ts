@@ -1,4 +1,4 @@
-import { IsDateString, IsNotEmpty } from "class-validator"
+import { IsDateString, IsNotEmpty, IsOptional, IsString } from "class-validator"
 
 export class MarketFilterInput {
     search: string
@@ -26,4 +26,10 @@ export class Section {
     @IsNotEmpty({ message: "กรุณาระบุวันที่" })
     @IsDateString({ message: "กรุณาระบุเป็น Date" })
     date: string
+}
+
+export class KeywordMarket {
+    @IsOptional()
+    @IsString({ message: "keyword ไม่เป็นตัวอักษร" })
+    keyword: string
 }

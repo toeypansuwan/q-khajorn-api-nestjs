@@ -9,7 +9,7 @@ const lab_connect_knex = knex({
     user: environment.databases.lab.username,
     password: environment.databases.lab.password,
     database: environment.databases.lab.dbname,
-    charset: 'utf8'
+    charset: 'utf8mb4',
   },
   pool: {
     propagateCreateError: false,

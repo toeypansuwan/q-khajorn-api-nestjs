@@ -5,6 +5,7 @@ https://docs.nestjs.com/controllers#controllers
 import { Controller, Post, UseGuards, Request, Body, Get } from '@nestjs/common';
 import { get } from 'lodash';
 import { AuthService } from './auth.service';
+import { LineId } from './dto/auth.dto';
 import { JwtAuthGuard } from './jwt/jwt-auth.guard';
 import { LocalAuthGuard } from './local/local-auth.guard';
 
@@ -25,7 +26,7 @@ export class AuthController {
 
     @UseGuards(JwtAuthGuard)
     @Post('switch-rich-menu')
-    async switchMenu(@Request() req: any, @Body() input: any) {
+    async switchMenu(@Request() @Body() input: LineId) {
         return await this.authService.switchRich(input);
     }
 }

@@ -105,7 +105,7 @@ export class MarketService {
 
     async getSection(id, input?) {
         const orderSectionZoneModel = new lab_models.OrderSectionZoneTb();
-        const sql = "CASE WHEN order_section_zone_day_tb.id IS NULL OR order_tb.status_pay = 'fail' THEN 'rgba(88, 202, 69, 0.5)' WHEN order_tb.status_pay = 'wait' THEN 'rgba(250, 207, 67, 0.5)' ELSE 'rgba(230, 230, 230, 0.5)' END as color, CASE WHEN order_section_zone_day_tb.id IS NULL OR order_tb.status_pay ='fail' THEN true WHEN order_tb.status_pay = 'wait' THEN 2  ELSE false END as status";
+        const sql = "CASE WHEN order_section_zone_day_tb.id IS NULL OR order_tb.status_pay = 'fail' THEN 'rgba(88, 202, 69, 0.5)' WHEN order_tb.status_pay = 'wait' THEN 'rgba(250, 207, 67, 0.5)' ELSE 'rgba(230, 230, 230, 0.5)' END as color, CASE WHEN order_section_zone_day_tb.id IS NULL OR order_tb.status_pay ='fail' THEN true WHEN order_tb.status_pay = 'wait' THEN 2  ELSE false END as status, CASE WHEN order_tb.status_pay = 'wait' THEN order_tb.id END as order_id";
         orderSectionZoneModel.query(q => {
             q.innerJoin(`order_section_zone_day_tb`, `order_section_zone_day_tb.order_section_zone_id`, `order_section_zone_tb.id`)
             q.innerJoin(`order_tb`, `order_tb.id`, `order_section_zone_tb.order_id`)
@@ -122,7 +122,10 @@ export class MarketService {
     }
     async getAppliance(id) {
         const accessoriesModel = new lab_models.AccessoriesTb();
-        const data = accessoriesModel.where('market_id', id).fetchAll({ columns: ['id', 'name', 'price', 'quantity', 'image'] })
+        const zone = await new lab_models.ZoneTb().where('id', id).fetch();
+        if (!zone)
+            throw new HttpException("ไม่พบ zone", 404);
+        const data = accessoriesModel.where('market_id', zone.get('market_id')).fetchAll({ columns: ['id', 'name', 'price', 'quantity', 'image'] })
         return data;
     }
     async getServicePrice(id) {
@@ -130,6 +133,5 @@ export class MarketService {
         const data = marketModel.where('id', id).fetch({ columns: ['id', 'service_price as price'] })
         return data;
     }
-
 
 }
