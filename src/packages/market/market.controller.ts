@@ -3,10 +3,14 @@ https://docs.nestjs.com/controllers#controllers
 */
 
 import { lab_models } from '@app/database/lab';
-import { Body, Controller, Get, Param, Post, Query, UseGuards, Request } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards, Request, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { plainToClass } from 'class-transformer';
+import { Verify } from 'crypto';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from '../auth/local/local-auth.guard';
-import { MarketFilterInput, Location, Section, KeywordMarket } from './dto/market.dto';
+import { MarketFilterInput, Location, Section, KeywordMarket, VerifyKeyInput } from './dto/market.dto';
+import { marketInputCreate } from './dto/marketCreate.dto';
 import { MarketService } from './market.service';
 
 @Controller()
@@ -71,4 +75,25 @@ export class MarketController {
 
         return await marketModel.fetchAll({ columns: ['id', 'name', 'image'] });
     }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('verify-key')
+    async verifyKey(@Body() input: VerifyKeyInput) {
+        const market = await new lab_models.MarketTb().where('key', input.key).fetch()
+        if (market) {
+            return;
+        }
+        return {
+            res_code: 200
+        }
+    }
+
+    @Post('test-upload')
+    @UseInterceptors(FileInterceptor('image'))
+    async testUpload(@UploadedFile() image: any, @Body() createMarketDto: any) {
+        console.log("ddd")
+        console.log(image)
+        // Save market to database
+    }
 }
+

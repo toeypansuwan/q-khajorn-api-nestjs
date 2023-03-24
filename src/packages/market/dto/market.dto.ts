@@ -1,4 +1,4 @@
-import { IsDateString, IsNotEmpty, IsOptional, IsString } from "class-validator"
+import { IsDateString, IsNotEmpty, IsOptional, IsString, Min, MinLength } from "class-validator"
 
 export class MarketFilterInput {
     search: string
@@ -32,4 +32,10 @@ export class KeywordMarket {
     @IsOptional()
     @IsString({ message: "keyword ไม่เป็นตัวอักษร" })
     keyword: string
+}
+
+export class VerifyKeyInput {
+    @IsNotEmpty({ message: 'กรุณากรอกรหัสตลาด' })
+    @MinLength(6, { message: "กรุณากรอก 6 ตัวขึ้นไป" })
+    key: string
 }
