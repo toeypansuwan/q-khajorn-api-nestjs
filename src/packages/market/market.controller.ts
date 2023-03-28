@@ -3,14 +3,14 @@ https://docs.nestjs.com/controllers#controllers
 */
 
 import { lab_models } from '@app/database/lab';
-import { Body, Controller, Get, Param, Post, Query, UseGuards, Request, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, UseGuards, Request, UploadedFile, UseInterceptors, Delete } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { plainToClass } from 'class-transformer';
 import { Verify } from 'crypto';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
 import { LocalAuthGuard } from '../auth/local/local-auth.guard';
 import { MarketFilterInput, Location, Section, KeywordMarket, VerifyKeyInput } from './dto/market.dto';
-import { marketInputCreate } from './dto/marketCreate.dto';
+import { MarketInputCreate } from './dto/marketCreate.dto';
 import { MarketService } from './market.service';
 
 @Controller()
@@ -79,21 +79,27 @@ export class MarketController {
     @UseGuards(JwtAuthGuard)
     @Post('verify-key')
     async verifyKey(@Body() input: VerifyKeyInput) {
-        const market = await new lab_models.MarketTb().where('key', input.key).fetch()
-        if (market) {
-            return;
+        const isMarket = await this.marketService.verifyKey(input)
+        if (isMarket) {
+            return {};
         }
         return {
             res_code: 200
         }
     }
 
-    @Post('test-upload')
-    @UseInterceptors(FileInterceptor('image'))
-    async testUpload(@UploadedFile() image: any, @Body() createMarketDto: any) {
-        console.log("ddd")
-        console.log(image)
+    @UseGuards(JwtAuthGuard)
+    @Post('/create')
+    async createMarket(@Body() marketInputCreate: MarketInputCreate) {
         // Save market to database
+        return await this.marketService.createMarket(marketInputCreate);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Delete('/delete/:id')
+    async deleteMarket(@Param('id') id: string) {
+        // Save market to database
+        return await this.marketService.destroyMarket(id);
     }
 }
 

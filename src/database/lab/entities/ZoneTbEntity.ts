@@ -4,29 +4,19 @@
 */
 export interface ZoneTbEntity {
   'color': string;
-  'height': number;
   'id'?: number;
   'image_plan': string;
   'market_id': number;
   'name': string;
-  'pos_left': number;
-  'pos_top': number;
-  'quantity_section'?: number | null;
   'shape': string;
-  'width': number;
 }
 
 
 export const ZoneTbAttributes = [
     "color",
-    "height",
     "id",
     "image_plan",
     "market_id",
     "name",
-    "pos_left",
-    "pos_top",
-    "quantity_section",
-    "shape",
-    "width"
+    "shape"
 ];

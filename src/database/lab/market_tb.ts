@@ -3,10 +3,13 @@ import Bluebird from "bluebird";
 import Bookshelf from "bookshelf";
 import * as moment from "moment";
 import { lab_connect } from "../connect";
+import { AccessoriesTb } from "./accessories_tb";
+import { CategoriesTb } from "./categories_tb";
 import { MarketTbAttributes, MarketTbEntity } from "./entities/MarketTbEntity";
 import { GalleriesTb } from "./galleries_tb";
 import { MarketDaysTb } from "./market_days_tb";
 import { UserTb } from "./user_tb";
+import { ZoneTb } from "./zone_tb";
 
 export class MarketTb extends lab_connect.Model<MarketTb> {
 
@@ -105,6 +108,15 @@ export class MarketTb extends lab_connect.Model<MarketTb> {
     }
     marketDays() {
         return this.hasMany(MarketDaysTb, 'market_id', 'id');
+    }
+    categories() {
+        return this.hasMany(CategoriesTb, 'market_id', 'id');
+    }
+    zones() {
+        return this.hasMany(ZoneTb, 'market_id', 'id');
+    }
+    accessories() {
+        return this.hasMany(AccessoriesTb, 'market_id', 'id');
     }
     user() {
         return this.belongsTo(UserTb, 'admin_id', 'id').query(q => {

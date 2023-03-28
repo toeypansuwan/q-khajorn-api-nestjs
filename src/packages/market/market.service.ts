@@ -3,12 +3,23 @@ https://docs.nestjs.com/providers#services
 */
 
 import { lab_connect, lab_models } from '@app/database/lab';
-import { AccessoriesTb } from '@app/database/lab/accessories_tb';
+import { AccessoriesTbEntity } from '@app/database/lab/entities/AccessoriesTbEntity';
+import { CategoriesTbEntity } from '@app/database/lab/entities/CategoriesTbEntity';
+import { GalleriesTbEntity } from '@app/database/lab/entities/GalleriesTbEntity';
+import { MarketDaysTbEntity } from '@app/database/lab/entities/MarketDaysTbEntity';
+import { MarketTbEntity } from '@app/database/lab/entities/MarketTbEntity';
+import { PointTbEntity } from '@app/database/lab/entities/PointTbEntity';
+import { SectionZoneTbEntity } from '@app/database/lab/entities/SectionZoneTbEntity';
+import { ZoneCategoriesTbEntity } from '@app/database/lab/entities/ZoneCategoriesTbEntity';
+import { ZoneTbEntity } from '@app/database/lab/entities/ZoneTbEntity';
+import { MarketDaysTb } from '@app/database/lab/market_days_tb';
 import { environment } from '@app/environments';
 import { HttpException, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { config } from 'bluebird';
-import { MarketFilterInput } from './dto/market.dto';
+import { Collection } from 'bookshelf';
+import { MarketFilterInput, VerifyKeyInput } from './dto/market.dto';
+import { MarketInputCreate } from './dto/marketCreate.dto';
 
 @Injectable()
 export class MarketService {
@@ -133,5 +144,134 @@ export class MarketService {
         const data = marketModel.where('id', id).fetch({ columns: ['id', 'service_price as price'] })
         return data;
     }
+
+    async verifyKey(input: VerifyKeyInput): Promise<boolean> {
+        const market = await new lab_models.MarketTb().where('key', input.key).fetch()
+        return market ? true : false;
+    }
+
+    async createMarket(input: MarketInputCreate) {
+
+        const verify = await this.verifyKey({ key: input.key })
+        if (verify) {
+            throw new HttpException("รหัสตลาดนี้ถูกใช้ไปแล้ว", 400)
+        }
+
+        const marketData: MarketTbEntity = {
+            detail: input.detail,
+            id_card_number: input.id_card_number,
+            image: input.image,
+            image_plan: input.image_plan,
+            key: input.key,
+            lat: input.lat,
+            lon: input.lon,
+            mobile_number: input.mobile_number,
+            name: input.name,
+            service_price: input.service_price,
+            time_close: input.time_close,
+            time_open: input.time_open,
+        }
+
+        const market = await new lab_models.MarketTb(marketData).save()
+
+        for (const gallery of input.galleries) {
+            const galleryData: GalleriesTbEntity = {
+                market_id: market.id,
+                image: gallery,
+            }
+            await new lab_models.GalleriesTb(galleryData).save()
+        }
+
+        for (const accessory of input.accessories) {
+            const accessoryData: AccessoriesTbEntity = {
+                market_id: market.id,
+                name: accessory.name,
+                price: accessory.price,
+                image: accessory.image,
+            }
+            await new lab_models.AccessoriesTb(accessoryData).save()
+        }
+
+        for (const category of input.categories) {
+            const categoryData: CategoriesTbEntity = {
+                market_id: market.id,
+                name: category.name,
+            }
+            await new lab_models.CategoriesTb(categoryData).save()
+        }
+
+        for (const dayname of input.daysname) {
+            const dayData: MarketDaysTbEntity = {
+                market_id: market.id,
+                dayname,
+            }
+            await new lab_models.MarketDaysTb(dayData).save()
+        }
+
+        for (const zone of input.zones) {
+            const zoneData: ZoneTbEntity = {
+                market_id: market.id,
+                name: zone.name,
+                color: zone.color,
+                image_plan: zone.image_plan,
+                shape: zone.shape
+            }
+            const zone_id = await (await new lab_models.ZoneTb(zoneData).save()).id
+
+            for (const category of zone.categories) {
+                const category_id = await (await new lab_models.CategoriesTb().query(q => {
+                    q.where("market_id", market.id).where("name", category.name)
+                }).fetch()).get('id')
+                const zoneCategoryData: ZoneCategoriesTbEntity = {
+                    category_id,
+                    zone_id
+                }
+                await new lab_models.ZoneCategoriesTb(zoneCategoryData).save()
+            }
+            for (const point of zone.points) {
+                const pointZoneData: PointTbEntity = {
+                    ...point,
+                    type_area: "zone",
+                    area_id: zone_id
+                }
+                await new lab_models.PointTb(pointZoneData).save()
+            }
+            for (const section_zone of zone.sections_zone) {
+                const sectionZoneData: SectionZoneTbEntity = {
+                    zone_id,
+                    name: section_zone.name,
+                    price: section_zone.price,
+                    status: section_zone.status,
+                    shape: section_zone.shape,
+                    image: section_zone.image
+                }
+                const section_id = await (await new lab_models.SectionZoneTb(sectionZoneData).save()).id
+
+                for (const point of section_zone.points) {
+                    const pointSectionData: PointTbEntity = {
+                        ...point,
+                        type_area: "section",
+                        area_id: section_id
+                    }
+                    await new lab_models.PointTb(pointSectionData).save()
+                }
+            }
+        }
+        return {
+            res_code: 200
+        };
+    }
+
+    async destroyMarket(id: string) {
+        const modelMarket = await new lab_models.MarketTb().where('id', id).fetch({ withRelated: ['marketDays', 'galleries', 'categories', 'zones', 'zones.points', 'zones.categories', 'zones.sections_zone.points', 'accessories'] })
+        modelMarket.related('marketDays')
+
+        // const marketDays: Array<MarketDaysTbEntity> = modelMarket.related('marketDays').toJSON();
+        // marketDays.forEach((marketDay) => {
+        //     marketDay
+        // })
+        return;
+    }
+
 
 }

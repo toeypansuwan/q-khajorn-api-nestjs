@@ -8,7 +8,6 @@ export interface AccessoriesTbEntity {
   'market_id': number;
   'name': string;
   'price': number;
-  'quantity': number;
 }
 
 
@@ -17,6 +16,5 @@ export const AccessoriesTbAttributes = [
     "image",
     "market_id",
     "name",
-    "price",
-    "quantity"
+    "price"
 ];

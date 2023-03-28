@@ -3,30 +3,22 @@
 * Rerun sql-ts to regenerate this file.
 */
 export interface SectionZoneTbEntity {
-  'height': number;
   'id'?: number;
   'image'?: string | null;
   'name': string;
-  'pos_left': number;
-  'post_top': number;
   'price': number;
   'shape': string;
   'status': string;
-  'width': number;
   'zone_id': number;
 }
 
 
 export const SectionZoneTbAttributes = [
-    "height",
     "id",
     "image",
     "name",
-    "pos_left",
-    "post_top",
     "price",
     "shape",
     "status",
-    "width",
     "zone_id"
 ];

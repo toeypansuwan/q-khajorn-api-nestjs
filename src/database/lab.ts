@@ -11,6 +11,10 @@ import { OrderTb } from './lab/order_tb'
 import { OrderAccessoryTb } from './lab/order_accessory_tb'
 import { OrderSectionZoneDayTb } from './lab/order_section_zone_day_tb'
 import { Notification } from './lab/notification'
+import { GalleriesTb } from './lab/galleries_tb'
+import { CategoriesTb } from './lab/categories_tb'
+import { ZoneCategoriesTb } from './lab/zone_categories_tb'
+import { PointTb } from './lab/point_tb'
 
 const lab_models = {
     OwnersTb,
@@ -25,7 +29,10 @@ const lab_models = {
     OrderAccessoryTb,
     OrderSectionZoneDayTb,
     Notification,
-    
+    GalleriesTb,
+    CategoriesTb,
+    ZoneCategoriesTb,
+    PointTb,
 }
 
 

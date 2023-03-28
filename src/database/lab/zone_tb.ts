@@ -3,8 +3,11 @@ import Bluebird from "bluebird";
 import Bookshelf from "bookshelf";
 //import * as moment from "moment";
 import { lab_connect } from "../connect";
+import { CategoriesTb } from "./categories_tb";
 import { ZoneTbAttributes, ZoneTbEntity } from "./entities/ZoneTbEntity";
 import { PointTb } from "./point_tb";
+import { SectionZoneTb } from "./section_zone_tb";
+import { ZoneCategoriesTb } from "./zone_categories_tb";
 
 export class ZoneTb extends lab_connect.Model<ZoneTb> {
 
@@ -89,6 +92,12 @@ export class ZoneTb extends lab_connect.Model<ZoneTb> {
             q.column('axis_x', 'axis_y', 'area_id')
             q.where('type_area', 'zone')
         });
+    }
+    categories() {
+        return this.belongsToMany(CategoriesTb, 'zone_categories_tb', 'category_id', 'zone_id')
+    }
+    sections_zone() {
+        return this.hasMany(SectionZoneTb, 'zone_id', 'id')
     }
 
 }
