@@ -66,7 +66,6 @@ export class MarketInputCreate {
     @IsArray()
     @Type(() => CategoryDto)
     @ValidateNested({ each: true })
-    // @ArrayUnique((item: CategoryDto) => item.id)
     categories: Array<CategoryDto>
 
     @Type(() => ZoneDTO)
@@ -80,7 +79,6 @@ export class MarketInputCreate {
     accessories: Array<AccessoryDto>
 }
 export class CategoryDto {
-    // @IsNotEmpty()
     @IsString()
     id: string;
 
@@ -108,7 +106,6 @@ export class ZoneDTO {
     @IsArray()
     @Type(() => CategoryDto)
     @ValidateNested({ each: true })
-    // @ArrayUnique((item: CategoryDto) => item.id)
     categories: Array<CategoryDto>
 
     @IsArray()

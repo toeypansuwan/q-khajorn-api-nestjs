@@ -1,7 +1,6 @@
 import { IBookshelf } from "@app/types/IBookshelf";
 import Bluebird from "bluebird";
 import Bookshelf from "bookshelf";
-//import * as moment from "moment";
 import { lab_connect } from "../connect";
 import { SectionZoneTbAttributes, SectionZoneTbEntity } from "./entities/SectionZoneTbEntity";
 import { PointTb } from "./point_tb";
@@ -59,7 +58,6 @@ export class SectionZoneTb extends lab_connect.Model<SectionZoneTb> {
             }
         }
         options.disableCount = true;
-        // console.log('options', options)
         return super.fetchPage(options)
     }
 
@@ -88,5 +86,5 @@ export class SectionZoneTb extends lab_connect.Model<SectionZoneTb> {
             q.where('type_area', 'section')
         });
     }
-
+    static dependents = ['points'];
 }

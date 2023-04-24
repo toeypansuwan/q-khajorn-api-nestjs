@@ -43,7 +43,6 @@ class mainController {
   signal_gracefulShutdown: boolean = false;
 
   gracefulShutdown() {
-    //console.log(environment.NODE_ENV)
     this.signal_gracefulShutdown = true;
     setTimeout(() => {
       process.exit(0);

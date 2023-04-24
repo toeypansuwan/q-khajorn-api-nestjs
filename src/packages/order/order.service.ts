@@ -2,11 +2,9 @@
 https://docs.nestjs.com/providers#services
 */
 import * as moment from 'moment';
-// import 'moment/locale/th'
-// moment.locale('th')
 import * as crypto from 'crypto';
 import axios from 'axios';
-import { lab_connect, lab_models } from '@app/database/lab';
+import { lab_models } from '@app/database/lab';
 import { HttpException, Injectable } from '@nestjs/common';
 import { CreateNotification, InputCreateDto } from './dto/order.dto';
 import { environment } from '@app/environments';
@@ -14,12 +12,10 @@ import { scheduleJob, Job } from 'node-schedule';
 import * as generatePayload from 'promptpay-qr';
 import * as qrcode from 'qrcode';
 import { writeFileSync } from 'fs';
-import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class OrderService {
-    // private cancellationJob: Job;
     private jobMap = new Map<string, Job>();
     async createOrder(input: InputCreateDto) {
         const marketModel = await new lab_models.MarketTb().where('id', input.market_id).fetch();
@@ -32,14 +28,12 @@ export class OrderService {
             q.count('* as count')
             q.whereBetween('created_at', [startOfWeek, endOfWeek])
         }).fetch();
-        // const count = countOrderOfMonth?.get('count').toString().padStart(5, '0');
         const uniqueCode = crypto.randomBytes(6).toString('hex');
         const date = moment(new Date()).format("YYYYMMDD");
 
         const orderData = {
             market_id: marketModel?.get('id'),
             market_name: marketModel?.get('name'),
-            // order_runnumber: `${count}-${date}-${marketModel.id}-${uniqueCode}`,
             order_runnumber: `KJ-${date}-${uniqueCode}`,
             user_id: userModel?.get('id'),
             user_name: userModel?.get('line_username'),
@@ -130,7 +124,6 @@ export class OrderService {
                 order_id: orderModelSave.id,
                 price: Number(sectionModel.get('price'))
             })
-            // dataRecipt.product.push(this.createSectionBox(sectionModel, section));
             for (const day of section.days) {
                 await new lab_models.OrderSectionZoneDayTb().save({
                     order_section_zone_id: orderSectionModel.id,
@@ -160,7 +153,6 @@ export class OrderService {
         await order.clone().save(updateData, { patch: true, method: 'update' })
 
         const paymentMessage = this.createPaymentMessage(orderData.order_runnumber, dataRecipt.totolPrice);
-        // console.log(paymentMessage);
         const data = {
             to: input.line_id,
             messages: [
@@ -220,23 +212,9 @@ export class OrderService {
             }
             this.sendMessageLine(data);
         });
-        // for (const notification of notificationModel.clone().toJSON()) {
-        // await (await new lab_models.Notification().where('id', notification.id).fetch()).save({ status: 0 }, { method: 'update' })
-        // const data = {
-        //     to: notification.line_id,
-        //     messages: [
-        //         {
-        //             type: "text",
-        //             text: `ตอนนี้คุณสามารถจองแผงที่ ${notification.sectionZone.name} ในวันที่ ${moment(notification.date, "YYYY-MM-DD").add(543, 'year').format("D MMMM YYYY")}`
-        //         },
-        //     ]
-        // }
-        // this.sendMessageLine(data);
-        // }
         return response;
     }
     async confirmOrder(orderId): Promise<any> {
-        // perform logic to confirm the order here
         const order = await new lab_models.OrderTb().where('id', orderId).fetch({ withRelated: ['orderAccessorys', 'orderSectionZone.orderSectionZoneDays', 'orderSectionZone.sectionZone', 'market.marketDays', 'users'] });
         if (order.get('status_pay') == 'fail') {
             throw new Error('รายการนี้ถูกยกเลิกไปแล้ว')
@@ -257,6 +235,7 @@ export class OrderService {
         }
         await this.sendMessageLine(data);
 
+        console.log(order.get('market_id'));
         const market = await new lab_models.MarketTb().where('id', order.get('market_id')).fetch({ withRelated: ['user'] });
         const dataOwner = {
             to: market.related('user').get('line_id'),
@@ -403,7 +382,7 @@ export class OrderService {
                             contents: [
                                 {
                                     type: "text",
-                                    text: `฿${price}`,
+                                    text: `฿${price.toFixed(2).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`,
                                     weight: "regular",
                                     size: "xxl",
                                     color: "#E07474FF",
@@ -450,21 +429,11 @@ export class OrderService {
                 size: "xl",
                 aspectRatio: "20:13",
                 aspectMode: "cover",
-                // action: {
-                //     type: "uri",
-                //     label: "Action",
-                //     uri: "https://linecorp.com"
-                // }
             },
             body: {
                 type: "box",
                 layout: "vertical",
                 spacing: "md",
-                // action: {
-                //     type: "uri",
-                //     label: "Action",
-                //     uri: "https://linecorp.com"
-                // },
                 contents: [
                     {
                         type: "box",

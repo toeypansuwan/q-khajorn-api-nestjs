@@ -124,4 +124,6 @@ export class MarketTb extends lab_connect.Model<MarketTb> {
         });
     }
 
+    static dependents = ['galleries', 'marketDays', 'categories', 'zones', 'accessories'];
+
 }

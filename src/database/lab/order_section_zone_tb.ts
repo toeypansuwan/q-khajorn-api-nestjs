@@ -1,11 +1,9 @@
 import { IBookshelf } from "@app/types/IBookshelf";
 import Bluebird from "bluebird";
 import Bookshelf from "bookshelf";
-//import * as moment from "moment";
 import { lab_connect } from "../connect";
 import { OrderSectionZoneTbAttributes, OrderSectionZoneTbEntity } from "./entities/OrderSectionZoneTbEntity";
 import { OrderSectionZoneDayTb } from "./order_section_zone_day_tb";
-import { OrderTb } from "./order_tb";
 import { PointTb } from "./point_tb";
 import { SectionZoneTb } from "./section_zone_tb";
 
@@ -62,7 +60,6 @@ export class OrderSectionZoneTb extends lab_connect.Model<OrderSectionZoneTb> {
             }
         }
         options.disableCount = true;
-        // console.log('options', options)
         return super.fetchPage(options)
     }
 

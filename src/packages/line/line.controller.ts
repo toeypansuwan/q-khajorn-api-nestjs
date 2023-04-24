@@ -12,9 +12,7 @@ import { lab_models } from '@app/database/lab';
 @Controller()
 export class LineController {
     private readonly client: Client
-    constructor(
-        // private readonly lineHandleEvent: LineHandleEvent
-    ) {
+    constructor() {
         this.client = new Client(environment.lineConfig)
     }
 

@@ -12,12 +12,7 @@ import { PointTbEntity } from '@app/database/lab/entities/PointTbEntity';
 import { SectionZoneTbEntity } from '@app/database/lab/entities/SectionZoneTbEntity';
 import { ZoneCategoriesTbEntity } from '@app/database/lab/entities/ZoneCategoriesTbEntity';
 import { ZoneTbEntity } from '@app/database/lab/entities/ZoneTbEntity';
-import { MarketDaysTb } from '@app/database/lab/market_days_tb';
-import { environment } from '@app/environments';
 import { HttpException, Injectable } from '@nestjs/common';
-import axios from 'axios';
-import { config } from 'bluebird';
-import { Collection } from 'bookshelf';
 import { MarketFilterInput, VerifyKeyInput } from './dto/market.dto';
 import { MarketInputCreate } from './dto/marketCreate.dto';
 
@@ -136,7 +131,7 @@ export class MarketService {
         const zone = await new lab_models.ZoneTb().where('id', id).fetch();
         if (!zone)
             throw new HttpException("ไม่พบ zone", 404);
-        const data = accessoriesModel.where('market_id', zone.get('market_id')).fetchAll({ columns: ['id', 'name', 'price', 'quantity', 'image'] })
+        const data = accessoriesModel.where('market_id', zone.get('market_id')).fetchAll({ columns: ['id', 'name', 'price', 'image'] })
         return data;
     }
     async getServicePrice(id) {
@@ -263,14 +258,12 @@ export class MarketService {
     }
 
     async destroyMarket(id: string) {
-        const modelMarket = await new lab_models.MarketTb().where('id', id).fetch({ withRelated: ['marketDays', 'galleries', 'categories', 'zones', 'zones.points', 'zones.categories', 'zones.sections_zone.points', 'accessories'] })
-        modelMarket.related('marketDays')
-
-        // const marketDays: Array<MarketDaysTbEntity> = modelMarket.related('marketDays').toJSON();
-        // marketDays.forEach((marketDay) => {
-        //     marketDay
-        // })
-        return;
+        try {
+            await new lab_models.MarketTb().where('id', id).destroy();
+        } catch (error) {
+            return error;
+        }
+        return { res_code: 200 };
     }
 
 

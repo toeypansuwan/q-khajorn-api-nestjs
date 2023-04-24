@@ -1,6 +1,7 @@
 import { environment } from '@app/env';
 import knex from 'knex';
 import * as bookshelf from 'bookshelf';
+import * as cascadeDelete from 'bookshelf-cascade-delete';
 
 const lab_connect_knex = knex({
   client: 'mysql',
@@ -10,6 +11,7 @@ const lab_connect_knex = knex({
     password: environment.databases.lab.password,
     database: environment.databases.lab.dbname,
     charset: 'utf8mb4',
+    ssl: environment.databases.lab.ssl,
   },
   pool: {
     propagateCreateError: false,
@@ -18,7 +20,7 @@ const lab_connect_knex = knex({
   }
 })
 
-const lab_connect = bookshelf(lab_connect_knex as any)
+const lab_connect = bookshelf(lab_connect_knex as any).plugin(cascadeDelete)
 
 export {
   lab_connect

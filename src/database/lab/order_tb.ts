@@ -69,7 +69,6 @@ export class OrderTb extends lab_connect.Model<OrderTb> {
             }
         }
         options.disableCount = true;
-        // console.log('options', options)
         return super.fetchPage(options)
     }
 

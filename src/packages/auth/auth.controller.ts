@@ -3,7 +3,6 @@ https://docs.nestjs.com/controllers#controllers
 */
 
 import { Controller, Post, UseGuards, Request, Body, Get } from '@nestjs/common';
-import { get } from 'lodash';
 import { AuthService } from './auth.service';
 import { LineId } from './dto/auth.dto';
 import { JwtAuthGuard } from './jwt/jwt-auth.guard';
