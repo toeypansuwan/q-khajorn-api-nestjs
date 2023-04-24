@@ -24,7 +24,7 @@ jobs:
       - name: npm install, build, and test
         run: |
           npm install
-          npm run build --if-present --force
+          npm run build --if-present --legacy-peer-deps
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
