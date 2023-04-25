@@ -7,7 +7,7 @@ config();
 const env = process.env.NODE_ENV == "production" ? environmentProduction : environmentDevelopment
 export const version = '0.0.1';
 export const environment = {
-    PORT: 80,
+    PORT: 8080,
     body_size: '5mb',
     gracefulShutdownTime: 120,
     lineConfig: {
