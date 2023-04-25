@@ -90,10 +90,10 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(new ValidationPipe());
 
-  await app.listen(environment.PORT).finally(() => {
+  await app.listen(environment.PORT || 3000).finally(() => {
     console.log("Server API is Running");
     console.log("Worker " + process.pid + " is alive!");
-    console.log('PORT', environment.PORT);
+    console.log('PORT', environment.PORT || 3000);
     console.log('NODE_ENV', environment.NODE_ENV)
     console.log('cwd path', process.cwd())
     console.log('HOST_NAME', os.hostname())
