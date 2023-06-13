@@ -10,9 +10,7 @@ import { CreateNotification, InputCreateDto } from './dto/order.dto';
 import { environment } from '@app/environments';
 import { scheduleJob, Job } from 'node-schedule';
 import * as generatePayload from 'promptpay-qr';
-import * as qrcode from 'qrcode';
 import { writeFileSync } from 'fs';
-import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class OrderService {
@@ -141,15 +139,7 @@ export class OrderService {
             price: dataRecipt.totolPrice,
             qr_code: ''
         }
-        const options = { type: 'svg', color: { dark: '#000', light: '#fff' } }
-        qrcode.toString(payload, options, (err, svg) => {
-            if (err) {
-                throw new Error(`qrcode: ${err}`);
-            }
-            const fileName = `QRcode_${uuidv4()}.svg`;
-            this.writeFile(`./upload/qr_code/${fileName}`, svg)
-            updateData.qr_code = fileName;
-        })
+        updateData.qr_code = payload;
         await order.clone().save(updateData, { patch: true, method: 'update' })
 
         const paymentMessage = this.createPaymentMessage(orderData.order_runnumber, dataRecipt.totolPrice);
